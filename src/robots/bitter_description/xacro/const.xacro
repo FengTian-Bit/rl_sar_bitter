@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- Constants for robot dimensions -->
+    <xacro:property name="PI" value="3.1415926535897931"/>
+
+    <!--在link标签中，<visual>、<collision>和<inertial>子标签中的<origin>属性定义了
+    该link的视觉、碰撞和惯性属性相对于link自身坐标系的位置和方向-->
+
+    <!--在joint标签中，<origin>属性定义了该joint的坐标系相对于父link坐标系的位置和方向-->
+
+    <!-- 对于参数的修改，可视化的机器人只是虚拟的，碰撞为简单的几何体，参考宇树科技。未曾手动修改惯性
+        矩阵。-->
+    <!-- 碰撞体大小为测的sw模型值，大概率不改。但是碰撞体积和碰撞体积偏移量也许会时常修改
+        在这里设参数化，这样子如果后续发现参数不合理，可以直接在这里修改 -->
+
+    <!--原点在trunk的质心，虽然trunk是个空架子 -->
+    <xacro:property name="trunk_width" value="0.310"/> 
+    <xacro:property name="trunk_length" value="0.630"/>
+    <xacro:property name="trunk_height" value="0.150"/>
+    <xacro:property name="trunk_offset" value="0.0"/><!--coollsion的z向偏移-->
+
+    <!--hip指髋关节-->
+    <xacro:property name="hip_length" value="0.055"/>
+    <xacro:property name="hip_radius" value="0.070"/>
+    <xacro:property name="hip_offset_y" value="0.13"/><!--是collision相对于link原点在y方向的s移-->
+    <xacro:property name="hip_offset_x" value="0.070"/> <!--是joint相对于link原点在x方向的偏移-->
+
+    <!--thigh指大腿关节-->
+    <xacro:property name="thigh_length" value="0.140"/>
+    <xacro:property name="thigh_width" value="0.052"/>
+    <xacro:property name="thigh_height" value="0.050"/>
+    <xacro:property name="thigh_offset_y" value="-0.040"/> <!--碰撞体的偏移-->
+    
+    <xacro:property name="thigh_joint_offset_x" value="0.065"/> 
+    <xacro:property name="thigh_joint_offset_y" value="0.1625"/> <!--指的joint在y方向的偏移，相对于2坐标系吧，要调-->
+
+    <!--小腿关节-->
+    <xacro:property name="calf_length" value="0.300"/>
+    <xacro:property name="calf_width" value="0.035"/>
+    <xacro:property name="calf_height" value="0.050"/>
+    <xacro:property name="calf_offset_y" value="0.005"/> <!--碰撞体的偏移-->
+    <xacro:property name="calf_joint_offset_y" value="-0.01885"/> <!--导出的值-->
+    <xacro:property name="calf_joint_offset_z" value="-0.3 "/>
+
+    <!--轮子关节-->
+    <xacro:property name="foot_radius" value="0.115"/>
+    <xacro:property name="foot_length" value="0.050"/>
+    <xacro:property name="foot_joint_offset_y" value="0.051"/> <!--导出的值-->
+    <xacro:property name="foot_joint_offset_z" value="-0.34408 "/>
+
+    <xacro:property name="foot_offset" value="0.0"/> <!--是collision相对于link原点在y方向的偏移-->
+
+
+    <!-- leg offset from trunk center value 整条腿的偏移，也就是髋关节碰撞体（小圆柱）
+        的原点位置，这是左前腿的偏移，需要调>
+        在hip中，leg_offset_xyz是hip的joint的，link的手填了，collision的是hip_offset -->
+    <xacro:property name="leg_offset_x" value="0.30195"/>
+    <xacro:property name="leg_offset_y" value="0.089394"/>
+    <xacro:property name="leg_offset_z" value="0.009556"/>  
+    <!--5.21添加：髋关节碰撞圆柱体-->
+    <xacro:property name="hip_stator_offset_x" value="0.07"/>
+    <xacro:property name="hip_stator_offset_y" value="0.015"/>
+   
+    <!-- joint limits -->
+    <xacro:property name="damping" value="0.0"/>
+    <xacro:property name="friction" value="0.0"/>
+    <xacro:property name="hip_position_max" value="0.79"/>
+    <xacro:property name="hip_position_min" value="-0.79"/>
+    <xacro:property name="hip_velocity_max" value="11.99"/>
+    <xacro:property name="hip_torque_max" value="200"/>
+    <xacro:property name="thigh_position_max" value="0.9"/>
+    <xacro:property name="thigh_position_min" value="-1.0"/>
+    <xacro:property name="thigh_velocity_max" value="11.99"/>
+    <xacro:property name="thigh_torque_max" value="200"/>
+    <xacro:property name="calf_position_max" value="2.0"/>
+    <xacro:property name="calf_position_min" value="0.0"/>
+    <xacro:property name="calf_velocity_max" value="11.99"/>
+    <xacro:property name="calf_torque_max" value="200"/>
+    <xacro:property name="foot_torque_max" value="35"/>
+    <xacro:property name="foot_velocity_max" value="83.78"/>
+
+    <!-- dynamics inertial value -->
+    <!-- trunk 我已经手动赋值好了，下面腿太多了用参数-->
+    <xacro:property name="trunk_mass" value="20.1"/> <!--没更新-->
+    
+    <!-- hip (left front) -->
+    <xacro:property name="hip_mass" value="3.8143"/>
+    <xacro:property name="hip_com_x" value="0.061582"/>
+    <xacro:property name="hip_com_y" value="0.016575"/>
+    <xacro:property name="hip_com_z" value="0.0023406"/>
+
+    <xacro:property name="hip_ixx" value="0.00126034"/>
+    <xacro:property name="hip_ixy" value="-2.577E-05"/>
+    <xacro:property name="hip_ixz" value="-3.507E-05"/>
+    <xacro:property name="hip_iyy" value="0.00072589"/>
+    <xacro:property name="hip_iyz" value="1.861E-05"/>
+    <xacro:property name="hip_izz" value="0.00136839"/>
+
+        <!-- thigh -->
+    <xacro:property name="thigh_mass" value="1.9052"/>
+    <xacro:property name="thigh_com_x" value="-0.0017599"/>
+    <xacro:property name="thigh_com_y" value="-0.033877"/>
+    <xacro:property name="thigh_com_z" value="-0.087245"/>
+
+    <xacro:property name="thigh_ixx" value="0.00687419"/>
+    <xacro:property name="thigh_ixy" value="4.05E-06"/>
+    <xacro:property name="thigh_ixz" value="-6.615E-05"/>
+    <xacro:property name="thigh_iyy" value="0.00716420"/>
+    <xacro:property name="thigh_iyz" value="8.810E-05"/>
+    <xacro:property name="thigh_izz" value="0.00074917"/>
+
+    <!-- calf 需要zuo'qian'tui -->
+    <xacro:property name="calf_mass" value="0.75"/> <!--验证了-->
+    <xacro:property name="calf_com_x" value="0.0067148"/>
+    <xacro:property name="calf_com_y" value="-0.0065919"/>
+    <xacro:property name="calf_com_z" value="-0.25451"/>
+
+    <xacro:property name="calf_ixx" value="0.00722169"/>
+    <xacro:property name="calf_ixy" value="2.209E-05"/>
+    <xacro:property name="calf_ixz" value="-0.00026683"/>
+    <xacro:property name="calf_iyy" value="0.00739374"/>
+    <xacro:property name="calf_iyz" value="0.00029351"/>
+    <xacro:property name="calf_izz" value="0.00044439"/>
+
+
+    <!-- foot 左前腿，这个的惯性矩阵没有改-->
+    <xacro:property name="foot_mass" value="3.0157"/>
+    <xacro:property name="foot_com_x" value="-4.9166E-06"/>
+    <xacro:property name="foot_com_y" value="-0.00074558"/>
+    <xacro:property name="foot_com_z" value="9.2139E-06"/>
+
+    <xacro:property name="foot_ixx" value="0.0046374"/>
+    <xacro:property name="foot_ixy" value="-2.4127E-08"/>
+    <xacro:property name="foot_ixz" value="-4.0829E-06"/>
+    <xacro:property name="foot_iyy" value="0.0088894"/>
+    <xacro:property name="foot_iyz" value="-4.25E-08"/>
+    <xacro:property name="foot_izz" value="0.0046429"/>
+
+</robot>

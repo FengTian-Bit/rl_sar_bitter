@@ -1,0 +1,958 @@
+<?xml version="1.0" ?>
+<!-- =================================================================================== -->
+<!-- |       在赵任宇2025年0826的旋转轴改变的基础上， 田丰修改于2025.09.20，修改了小腿及轮的碰撞体改为stl的碰撞（借鉴b2w） -->
+<!--          09-22，修改imu的joint parent“trunk” ，z=-0.02     | -->
+<!-- =================================================================================== -->
+<robot name="bitter_description">
+
+  <!--在 Gazebo 中使用 ros_control 框架来控制机器人关节（如位置、速度、力矩控制等）-->
+  <gazebo>
+    <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
+      <robotNamespace>/bitter_gazebo</robotNamespace>
+      <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+    </plugin>
+  </gazebo>
+  <!--通过 ROS 话题 /apply_force/trunk 向机器人的 trunk（躯干）施加外力（力和力矩）,暂时没用到-->
+  <gazebo>
+    <plugin filename="libgazebo_ros_force.so" name="gazebo_ros_force">
+      <bodyName>trunk</bodyName>
+      <topicName>/apply_force/trunk</topicName>
+    </plugin>
+  </gazebo>
+  <!--为 imu_link 添加一个 IMU 传感器，并通过 ROS 发布 IMU 数据（角速度、线加速度、姿态等）-->
+  <gazebo reference="imu_link">
+    <gravity>true</gravity>
+    <sensor name="imu_sensor" type="imu">
+      <always_on>true</always_on>
+      <update_rate>1000</update_rate>
+      <visualize>true</visualize>
+      <topic>__default_topic__</topic>
+      <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+        <topicName>trunk_imu</topicName>
+        <bodyName>imu_link</bodyName>
+        <updateRateHZ>1000.0</updateRateHZ>
+        <gaussianNoise>0.0</gaussianNoise>
+        <xyzOffset>0 0 0</xyzOffset>
+        <rpyOffset>0 0 0</rpyOffset>
+        <frameName>imu_link</frameName>
+      </plugin>
+      <pose>0 0 0 0 0 0</pose>
+    </sensor>
+  </gazebo>
+  <gazebo reference="base">
+    <material>Gazebo/Green</material>
+    <turnGravityOff>false</turnGravityOff>
+  </gazebo>
+  <gazebo reference="trunk">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <kp value="1000000.0"/>
+    <kd value="1.0"/>
+  </gazebo>
+  <gazebo reference="imu_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/Red</material>
+  </gazebo>
+  <!-- FL leg -->
+  <gazebo reference="FL_hip">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/DarkGrey</material>
+  </gazebo>
+  <gazebo reference="FL_thigh">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+    <material>Gazebo/DarkGrey</material>
+    <kp value="1000000.0"/>
+    <kd value="1.0"/>
+  </gazebo>
+  <gazebo reference="FL_calf">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+  </gazebo>
+  <gazebo reference="FL_foot">
+    <mu1>0.6</mu1>
+    <mu2>0.6</mu2>
+    <self_collide>1</self_collide>
+    <material>Gazebo/DarkGrey</material>
+    <kp value="1000000.0"/>
+    <kd value="1.0"/>
+  </gazebo>
+  <!-- FR leg -->
+  <gazebo reference="FR_hip">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/DarkGrey</material>
+  </gazebo>
+  <gazebo reference="FR_thigh">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+    <material>Gazebo/DarkGrey</material>
+    <kp value="1000000.0"/>
+    <kd value="1.0"/>
+  </gazebo>
+  <gazebo reference="FR_calf">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+  </gazebo>
+  <gazebo reference="FR_foot">
+    <mu1>0.6</mu1>
+    <mu2>0.6</mu2>
+    <self_collide>1</self_collide>
+    <material>Gazebo/DarkGrey</material>
+    <kp value="1000000.0"/>
+    <kd value="1.0"/>
+  </gazebo>
+  <!-- RL leg -->
+  <gazebo reference="RL_hip">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/DarkGrey</material>
+  </gazebo>
+  <gazebo reference="RL_thigh">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+    <material>Gazebo/DarkGrey</material>
+    <kp value="1000000.0"/>
+    <kd value="1.0"/>
+  </gazebo>
+  <gazebo reference="RL_calf">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+  </gazebo>
+  <gazebo reference="RL_foot">
+    <mu1>0.6</mu1>
+    <mu2>0.6</mu2>
+    <self_collide>1</self_collide>
+    <material>Gazebo/DarkGrey</material>
+    <kp value="1000000.0"/>
+    <kd value="1.0"/>
+  </gazebo>
+  <!-- RR leg -->
+  <gazebo reference="RR_hip">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/DarkGrey</material>
+  </gazebo>
+  <gazebo reference="RR_thigh">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+    <material>Gazebo/DarkGrey</material>
+    <kp value="1000000.0"/>
+    <kd value="1.0"/>
+  </gazebo>
+  <gazebo reference="RR_calf">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <self_collide>1</self_collide>
+  </gazebo>
+  <gazebo reference="RR_foot">
+    <mu1>0.6</mu1>
+    <mu2>0.6</mu2>
+    <self_collide>1</self_collide>
+    <material>Gazebo/DarkGrey</material>
+    <kp value="1000000.0"/>
+    <kd value="1.0"/>
+  </gazebo>
+
+  <!--电机传动-->
+  <transmission name="FR_hip_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="FR_hip_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="FR_hip_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="FR_thigh_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="FR_thigh_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="FR_thigh_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="FR_calf_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="FR_calf_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="FR_calf_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="FR_foot_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="FR_foot_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="FR_foot_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="FL_hip_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="FL_hip_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="FL_hip_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="FL_thigh_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="FL_thigh_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="FL_thigh_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="FL_calf_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="FL_calf_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="FL_calf_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="FL_foot_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="FL_foot_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="FL_foot_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+  <transmission name="RR_hip_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="RR_hip_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="RR_hip_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="RR_thigh_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="RR_thigh_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="RR_thigh_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="RR_calf_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="RR_calf_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="RR_calf_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="RR_foot_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="RR_foot_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="RR_foot_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  
+  <transmission name="RL_hip_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="RL_hip_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="RL_hip_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="RL_thigh_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="RL_thigh_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="RL_thigh_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="RL_calf_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="RL_calf_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="RL_calf_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="RL_foot_tran">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="RL_foot_joint">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="RL_foot_motor">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  
+  <link name="base">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+  </link>
+  <joint name="floating_base" type="fixed">
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <parent link="base"/>
+    <child link="trunk"/>
+  </joint>
+  <!-- 躯干 -->
+  <link name="trunk">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 -0.075"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/Base.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <geometry>
+        <box size="0.63 0.31 0.15"/>
+      </geometry>
+    </collision>
+    <!--7.2日: xyz="8.1667E-05 5.1958E-08 -8.1761E-05",这是原来的,我感觉下面这个新导出的狗坐标原点偏移有点多了
+                    xyz="-0.015179 -0.00051187 0.07496" -->
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.015179 -0.00051187 -8.1761E-05"/>
+      <mass value="20.4092"/>
+      <inertia ixx="0.171426" ixy="0.001099" ixz="0.022801" iyy="0.704476" iyz="-0.000062" izz="0.761919"/>
+    </inertial>
+  </link>
+  
+  <!--imu-->
+  <joint name="imu_joint" type="fixed">
+    <parent link="trunk"/>
+    <child link="imu_link"/>
+    <origin rpy="0 0 0" xyz="0 0 -0.02"/>
+  </joint>
+  <link name="imu_link">
+    <inertial>
+      <mass value="0.001"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size=".001 .001 .001"/>
+      </geometry>
+    </collision>
+  </link>
+  <!--hip指髋关节-->
+  <joint name="FR_hip_joint" type="revolute">
+    <origin rpy="0 0 0" xyz="0.30195 -0.089394 0.009556"/>
+    <parent link="base"/>
+    <child link="FR_hip"/>
+    <axis xyz="1 0 0"/>
+    <!--导出的是-1，绕世界坐标系的-y轴转，因为urdf导出反的，注意-->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="-0.79" upper="0.79" velocity="11.99"/>
+  </joint>
+  <joint name="FR_hip_stator_fixed" type="fixed">
+    <origin rpy="0 0 0" xyz="0.07 -0.015 0"/>
+    <parent link="FR_hip"/>
+    <child link="FR_hip_stator"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+  <link name="FR_hip">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/FR_hip_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="0.07 -0.13 0"/>
+      <geometry>
+        <cylinder length="0.055" radius="0.07"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.061582 -0.016575 0.0023406"/>
+      <mass value="3.8143"/>
+      <inertia ixx="0.00126034" ixy="2.577e-05" ixz="-3.507e-05" iyy="0.00072589" iyz="-1.861e-05" izz="0.00136839"/>
+    </inertial>
+  </link>
+  <link name="FR_hip_stator">
+    <!--不需要视觉，只要碰撞，5.21加的,修改了碰撞体-->
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="0.0 0 0"/>
+      <geometry>
+        <cylinder length="0.15" radius="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+  <!--thigh指大腿-->
+  <joint name="FR_thigh_joint" type="revolute">
+    <origin rpy="0 0.17453292519943295 0" xyz="0.065 -0.1625 0"/>
+    <parent link="FR_hip"/>
+    <child link="FR_thigh"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="-0.9" upper="1.0" velocity="11.99"/>
+  </joint>
+  <link name="FR_thigh">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--右边-->
+        <mesh filename="package://bitter_description/meshes/FR_thigh_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!--将碰撞几何体的原点设置在大腿长度的中间位置,叉掉，看不懂自己之前写什么了-->
+      <origin rpy="0 1.5707963267948966 0" xyz="0 0.04 -0.15000000000000002"/>
+      <geometry>
+        <box size="0.14 0.052 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.0017599 0.033877 -0.087245"/>
+      <mass value="1.9052"/>
+      <inertia ixx="0.00687419" ixy="-4.05e-06" ixz="-6.615e-05" iyy="0.0071642" iyz="-8.81e-05" izz="0.00074917"/>
+    </inertial>
+  </link>
+  <!--calf指小腿-->
+  <joint name="FR_calf_joint" type="revolute">
+    <origin rpy="0 -0.3490658503988659 0" xyz="0 0.01885 -0.3"/>
+    <parent link="FR_thigh"/>
+    <child link="FR_calf"/>
+    <axis xyz="0 1 0"/>
+    <!--这个和导出的一样1,但是不满足逆时针为正，改为-1-->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="-2.0" upper="0.0" velocity="11.99"/>
+  </joint>
+  <link name="FR_calf">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--右边-->
+        <mesh filename="package://bitter_description/meshes/FR_calf_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!-- <origin rpy="0 1.5707963267948966 0" xyz="0 0.0025 -0.15"/>
+      <geometry>
+        <box size="0.3 0.035 0.05"/>
+      </geometry> -->
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/FR_calf_link.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0067148 0.0065919 -0.25451"/>
+      <mass value="0.75"/>
+      <inertia ixx="0.00722169" ixy="-2.209e-05" ixz="-0.00026683" iyy="0.00739374" iyz="-0.00029351" izz="0.00044439"/>
+    </inertial>
+  </link>
+  <!--foot指轮胎-->
+  <joint name="FR_foot_joint" type="revolute">
+    <origin rpy="0 0 0" xyz="0 -0.051 -0.34408"/>
+    <parent link="FR_calf"/>
+    <child link="FR_foot"/>
+    <axis xyz="0 1 0"/>
+    <!---->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="35" velocity="83.78" lower="-9999" upper="9999"/>
+  </joint>
+  <link name="FR_foot">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--右边-->
+        <mesh filename="package://bitter_description/meshes/FR_wheel_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!-- <origin rpy="1.5707963267948966 0 0" xyz="0 -0.0 0"/>
+      <geometry>
+        <cylinder length="0.05" radius="0.115"/> -->
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/FR_wheel_link.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="-4.9166e-06 0.00074558 9.2139e-06"/>
+      <mass value="3.0157"/>
+      <inertia ixx="0.0046374" ixy="2.4127e-08" ixz="-4.0829e-06" iyy="0.0088894" iyz="4.25e-08" izz="0.0046429"/>
+    </inertial>
+  </link>
+  <!--hip指髋关节-->
+  <joint name="FL_hip_joint" type="revolute">
+    <origin rpy="0 0 0" xyz="0.30195 0.089394 0.009556"/>
+    <parent link="base"/>
+    <child link="FL_hip"/>
+    <axis xyz="1 0 0"/>
+    <!--导出的是-1，绕世界坐标系的-y轴转，因为urdf导出反的，注意-->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="-0.79" upper="0.79" velocity="11.99"/>
+  </joint>
+  <joint name="FL_hip_stator_fixed" type="fixed">
+    <origin rpy="0 0 0" xyz="0.07 0.015 0"/>
+    <parent link="FL_hip"/>
+    <child link="FL_hip_stator"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+  <link name="FL_hip">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/FL_hip_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="0.07 0.13 0"/>
+      <geometry>
+        <cylinder length="0.055" radius="0.07"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.061582 0.016575 0.0023406"/>
+      <mass value="3.8143"/>
+      <inertia ixx="0.00126034" ixy="-2.577e-05" ixz="-3.507e-05" iyy="0.00072589" iyz="1.861e-05" izz="0.00136839"/>
+    </inertial>
+  </link>
+  <link name="FL_hip_stator">
+    <!--不需要视觉，只要碰撞，5.21加的-->
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="0.0 0 0"/>
+      <geometry>
+        <cylinder length="0.15" radius="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+  <!--thigh指大腿-->
+  <joint name="FL_thigh_joint" type="revolute">
+    <origin rpy="0 0.17453292519943295 0" xyz="0.065 0.1625 0"/>
+    <parent link="FL_hip"/>
+    <child link="FL_thigh"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="-0.9" upper="1.0" velocity="11.99"/>
+  </joint>
+  <link name="FL_thigh">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--左边-->
+        <mesh filename="package://bitter_description/meshes/FL_thigh_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!--将碰撞几何体的原点设置在大腿长度的中间位置,叉掉，看不懂自己之前写什么了-->
+      <origin rpy="0 1.5707963267948966 0" xyz="0 -0.04 -0.15000000000000002"/>
+      <geometry>
+        <box size="0.14 0.052 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.0017599 -0.033877 -0.087245"/>
+      <mass value="1.9052"/>
+      <inertia ixx="0.00687419" ixy="4.05e-06" ixz="-6.615e-05" iyy="0.0071642" iyz="8.81e-05" izz="0.00074917"/>
+    </inertial>
+  </link>
+  <!--calf指小腿-->
+  <joint name="FL_calf_joint" type="revolute">
+    <origin rpy="0 -0.3490658503988659 0" xyz="0 -0.01885 -0.3"/>
+    <parent link="FL_thigh"/>
+    <child link="FL_calf"/>
+    <axis xyz="0 1 0"/>
+    <!--这个和导出的一样1,但是不满足逆时针为正，改为-1-->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="-2.0" upper="0.0" velocity="11.99"/>
+  </joint>
+  <link name="FL_calf">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--左前-->
+        <mesh filename="package://bitter_description/meshes/FL_calf_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!-- <origin rpy="0 1.5707963267948966 0" xyz="0 -0.0025 -0.15"/>
+      <geometry>
+        <box size="0.3 0.035 0.05"/>
+      </geometry> -->
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/FL_calf_link.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0067148 -0.0065919 -0.25451"/>
+      <mass value="0.75"/>
+      <inertia ixx="0.00722169" ixy="2.209e-05" ixz="-0.00026683" iyy="0.00739374" iyz="0.00029351" izz="0.00044439"/>
+    </inertial>
+  </link>
+  <!--foot指轮胎-->
+  <joint name="FL_foot_joint" type="revolute">
+    <origin rpy="0 0 0" xyz="0 0.051 -0.34408"/>
+    <parent link="FL_calf"/>
+    <child link="FL_foot"/>
+    <axis xyz="0 1 0"/>
+    <!---->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="35" velocity="83.78" lower="-9999" upper="9999"/>
+  </joint>
+  <link name="FL_foot">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--左边-->
+        <mesh filename="package://bitter_description/meshes/FL_wheel_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!-- <origin rpy="1.5707963267948966 0 0" xyz="0 0.0 0"/>
+      <geometry>
+        <cylinder length="0.05" radius="0.115"/>
+      </geometry> -->
+      <origin rpy="0 0 0" xyz="0 0.0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/FL_wheel_link.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="-4.9166e-06 -0.00074558 9.2139e-06"/>
+      <mass value="3.0157"/>
+      <inertia ixx="0.0046374" ixy="-2.4127e-08" ixz="-4.0829e-06" iyy="0.0088894" iyz="-4.25e-08" izz="0.0046429"/>
+    </inertial>
+  </link>
+  <!--hip指髋关节-->
+  <joint name="RR_hip_joint" type="revolute">
+    <origin rpy="0 0 0" xyz="-0.30195 -0.089394 0.009556"/>
+    <parent link="base"/>
+    <child link="RR_hip"/>
+    <axis xyz="1 0 0"/>
+    <!--导出的是-1，绕世界坐标系的-y轴转，因为urdf导出反的，注意-->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="-0.79" upper="0.79" velocity="11.99"/>
+  </joint>
+  <joint name="RR_hip_stator_fixed" type="fixed">
+    <origin rpy="0 0 0" xyz="-0.07 -0.015 0"/>
+    <parent link="RR_hip"/>
+    <child link="RR_hip_stator"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+  <link name="RR_hip">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/RR_hip_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="-0.07 -0.13 0"/>
+      <geometry>
+        <cylinder length="0.055" radius="0.07"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.061582 -0.016575 0.0023406"/>
+      <mass value="3.8143"/>
+      <inertia ixx="0.00126034" ixy="-2.577e-05" ixz="3.507e-05" iyy="0.00072589" iyz="-1.861e-05" izz="0.00136839"/>
+    </inertial>
+  </link>
+  <link name="RR_hip_stator">
+    <!--不需要视觉，只要碰撞，5.21加的-->
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="-0.0 0 0"/>
+      <geometry>
+        <cylinder length="0.15" radius="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+  <!--thigh指大腿-->
+  <joint name="RR_thigh_joint" type="revolute">
+    <origin rpy="0 -0.17453292519943295 0" xyz="-0.065 -0.1625 0"/>
+    <parent link="RR_hip"/>
+    <child link="RR_thigh"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="-1.0" upper="0.9" velocity="11.99"/>
+  </joint>
+  <link name="RR_thigh">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--右边-->
+        <mesh filename="package://bitter_description/meshes/FR_thigh_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!--将碰撞几何体的原点设置在大腿长度的中间位置,叉掉，看不懂自己之前写什么了-->
+      <origin rpy="0 1.5707963267948966 0" xyz="0 0.04 -0.15000000000000002"/>
+      <geometry>
+        <box size="0.14 0.052 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.0017599 0.033877 -0.087245"/>
+      <mass value="1.9052"/>
+      <inertia ixx="0.00687419" ixy="-4.05e-06" ixz="-6.615e-05" iyy="0.0071642" iyz="-8.81e-05" izz="0.00074917"/>
+    </inertial>
+  </link>
+  <!--calf指小腿-->
+  <joint name="RR_calf_joint" type="revolute">
+    <origin rpy="0 0.3490658503988659 0" xyz="0 0.01885 -0.3"/>
+    <parent link="RR_thigh"/>
+    <child link="RR_calf"/>
+    <axis xyz="0 1 0"/>
+    <!--这个和导出的一样1,但是不满足逆时针为正，改为-1-->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="0.0" upper="2.0" velocity="11.99"/>
+  </joint>
+  <link name="RR_calf">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/RR_calf_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!-- <origin rpy="0 1.5707963267948966 0" xyz="0 0.0025 -0.15"/>
+      <geometry>
+        <box size="0.3 0.035 0.05"/>
+      </geometry> -->
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/RR_calf_link.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0067148 0.0065919 -0.25451"/>
+      <mass value="0.75"/>
+      <inertia ixx="0.00722169" ixy="-2.209e-05" ixz="-0.00026683" iyy="0.00739374" iyz="-0.00029351" izz="0.00044439"/>
+    </inertial>
+  </link>
+  <!--foot指轮胎-->
+  <joint name="RR_foot_joint" type="revolute">
+    <origin rpy="0 0 0" xyz="0 -0.051 -0.34408"/>
+    <parent link="RR_calf"/>
+    <child link="RR_foot"/>
+    <axis xyz="0 1 0"/>
+    <!---->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="35" velocity="83.78" lower="-9999" upper="9999"/>
+  </joint>
+  <link name="RR_foot">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--右边-->
+        <mesh filename="package://bitter_description/meshes/FR_wheel_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!-- <origin rpy="1.5707963267948966 0 0" xyz="0 -0.0 0"/>
+      <geometry>
+        <cylinder length="0.05" radius="0.115"/>
+      </geometry> -->
+      <origin rpy="0 0 0" xyz="0 0.0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/FR_wheel_link.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="-4.9166e-06 0.00074558 9.2139e-06"/>
+      <mass value="3.0157"/>
+      <inertia ixx="0.0046374" ixy="2.4127e-08" ixz="-4.0829e-06" iyy="0.0088894" iyz="4.25e-08" izz="0.0046429"/>
+    </inertial>
+  </link>
+  <!--hip指髋关节-->
+  <joint name="RL_hip_joint" type="revolute">
+    <origin rpy="0 0 0" xyz="-0.30195 0.089394 0.009556"/>
+    <parent link="base"/>
+    <child link="RL_hip"/>
+    <axis xyz="1 0 0"/>
+    <!--导出的是-1，绕世界坐标系的-y轴转，因为urdf导出反的，注意-->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="-0.79" upper="0.79" velocity="11.99"/>
+  </joint>
+  <joint name="RL_hip_stator_fixed" type="fixed">
+    <origin rpy="0 0 0" xyz="-0.07 0.015 0"/>
+    <parent link="RL_hip"/>
+    <child link="RL_hip_stator"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+  <link name="RL_hip">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/RL_hip_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="-0.07 0.13 0"/>
+      <geometry>
+        <cylinder length="0.055" radius="0.07"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.061582 0.016575 0.0023406"/>
+      <mass value="3.8143"/>
+      <inertia ixx="0.00126034" ixy="2.577e-05" ixz="3.507e-05" iyy="0.00072589" iyz="1.861e-05" izz="0.00136839"/>
+    </inertial>
+  </link>
+  <link name="RL_hip_stator">
+    <!--不需要视觉，只要碰撞，5.21加的-->
+    <collision>
+      <origin rpy="1.5707963267948966 0 0" xyz="-0.0 0 0"/>
+      <geometry>
+        <cylinder length="0.15" radius="0.05"/>
+      </geometry>
+    </collision>
+  </link>
+  <!--thigh指大腿-->
+  <joint name="RL_thigh_joint" type="revolute">
+    <origin rpy="0 -0.17453292519943295 0" xyz="-0.065 0.1625 0"/>
+    <parent link="RL_hip"/>
+    <child link="RL_thigh"/>
+    <axis xyz="0 1 0"/>
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="-1.0" upper="0.9" velocity="11.99"/>
+  </joint>
+  <link name="RL_thigh">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--左边-->
+        <mesh filename="package://bitter_description/meshes/FL_thigh_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!--将碰撞几何体的原点设置在大腿长度的中间位置,叉掉，看不懂自己之前写什么了-->
+      <origin rpy="0 1.5707963267948966 0" xyz="0 -0.04 -0.15000000000000002"/>
+      <geometry>
+        <box size="0.14 0.052 0.05"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="-0.0017599 -0.033877 -0.087245"/>
+      <mass value="1.9052"/>
+      <inertia ixx="0.00687419" ixy="4.05e-06" ixz="-6.615e-05" iyy="0.0071642" iyz="8.81e-05" izz="0.00074917"/>
+    </inertial>
+  </link>
+  <!--calf指小腿-->
+  <joint name="RL_calf_joint" type="revolute">
+    <origin rpy="0 0.3490658503988659 0" xyz="0 -0.01885 -0.3"/>
+    <parent link="RL_thigh"/>
+    <child link="RL_calf"/>
+    <axis xyz="0 1 0"/>
+    <!--这个和导出的一样1,但是不满足逆时针为正，改为-1-->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="200" lower="0.0" upper="2.0" velocity="11.99"/>
+  </joint>
+  <link name="RL_calf">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--左后-->
+        <mesh filename="package://bitter_description/meshes/RL_calf_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!-- <origin rpy="0 1.5707963267948966 0" xyz="0 -0.0025 -0.15"/>
+      <geometry>
+        <box size="0.3 0.035 0.05"/>
+      </geometry> -->
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/RL_calf_link.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0067148 -0.0065919 -0.25451"/>
+      <mass value="0.75"/>
+      <inertia ixx="0.00722169" ixy="2.209e-05" ixz="-0.00026683" iyy="0.00739374" iyz="0.00029351" izz="0.00044439"/>
+    </inertial>
+  </link>
+  <!--foot指轮胎-->
+  <joint name="RL_foot_joint" type="revolute">
+    <origin rpy="0 0 0" xyz="0 0.051 -0.34408"/>
+    <parent link="RL_calf"/>
+    <child link="RL_foot"/>
+    <axis xyz="0 1 0"/>
+    <!---->
+    <dynamics damping="0.0" friction="0.0"/>
+    <limit effort="35" velocity="83.78" lower="-9999" upper="9999"/>
+  </joint>
+  <link name="RL_foot">
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <!--左边-->
+        <mesh filename="package://bitter_description/meshes/FL_wheel_link.STL" scale="1 1 1"/>
+      </geometry>
+    </visual>
+    <collision>
+      <!-- <origin rpy="1.5707963267948966 0 0" xyz="0 0.0 0"/>
+      <geometry>
+        <cylinder length="0.05" radius="0.115"/>
+      </geometry> -->
+      <origin rpy="0 0 0" xyz="0 0.0 0"/>
+      <geometry>
+        <mesh filename="package://bitter_description/meshes/FL_wheel_link.STL" scale="1 1 1"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin rpy="0 0 0" xyz="-4.9166e-06 -0.00074558 9.2139e-06"/>
+      <mass value="3.0157"/>
+      <inertia ixx="0.0046374" ixy="-2.4127e-08" ixz="-4.0829e-06" iyy="0.0088894" iyz="-4.25e-08" izz="0.0046429"/>
+    </inertial>
+  </link>
+</robot>
+

@@ -1,0 +1,28 @@
+<launch>
+    <!-- 开imu -->
+    <!-- <node  name="xsens_mti_node" 
+    pkg="xsens_mti_driver" 
+    type="xsens_mti_node" 
+    output="screen">
+    <rosparam command="load" 
+    file="$(find xsens_mti_driver)/param/xsens_mti_node.yaml" />
+    </node> -->
+
+    <!-- 开xsens_ris_mti_driver display.launch -->
+    <include file="$(find xsens_mti_driver)/launch/display.launch" />
+
+    <!--joy-->
+    <node name="joy_node" pkg="joy" type="joy_node" output="screen" />
+
+    <node name="bitter_imu" 
+     pkg="bitter_imu_ros" 
+    type="imu_converter" 
+    output="screen" />
+
+    <!-- 开rl -->
+    <node name="rl_real_bitter" 
+     pkg="rl_sar" 
+     type="rl_real_bitter" 
+     output="screen" />
+
+</launch>

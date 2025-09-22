@@ -1,0 +1,215 @@
+/*
+ * Copyright (c) 2024-2025 Ziqi Fan
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#ifndef RL_SDK_HPP
+#define RL_SDK_HPP
+
+#include <torch/script.h>
+#include <iostream>
+#include <string>
+#include <exception>
+#include <unistd.h>
+#include <tbb/concurrent_queue.h>
+
+#include <yaml-cpp/yaml.h>
+#include "fsm.hpp"
+#include "observation_buffer.hpp"
+#include "keyboard_controller.hpp"
+#include "RobotCommand.hpp"
+#include "RobotState.hpp"
+
+namespace LOGGER
+{
+    const char *const INFO    = "\033[0;37m[INFO]\033[0m ";
+    const char *const WARNING = "\033[0;33m[WARNING]\033[0m ";
+    const char *const ERROR   = "\033[0;31m[ERROR]\033[0m ";
+    const char *const DEBUG   = "\033[0;32m[DEBUG]\033[0m ";
+}
+
+
+enum STATE
+{
+    STATE_WAITING = 0,
+    STATE_POS_GETUP,
+    STATE_RL_LOCOMOTION,
+    STATE_RL_NAVIGATION,
+    STATE_POS_GETDOWN,
+    STATE_RESET_SIMULATION,
+    STATE_TOGGLE_SIMULATION,
+    STATE_WHEEL,
+    STATE_TEST1,
+    STATE_TEST2,
+};
+
+struct Control
+{
+    STATE control_state, last_control_state;
+    double x = 0.0;
+    double y = 0.0;
+    double yaw = 0.0;
+    double wheel = 0.0;
+    void SetControlState(STATE new_state)
+    {
+        if (control_state != new_state)
+        {
+            last_control_state = control_state;
+            control_state = new_state;
+        }
+    }
+};
+
+struct ModelParams
+{
+    std::string model_name;
+    std::string framework;
+    double dt;
+    int decimation;
+    int num_observations;
+    std::vector<std::string> observations;
+    std::vector<int> observations_history;
+    double damping;
+    double stiffness;
+    torch::Tensor action_scale;
+    std::vector<int> wheel_indices;
+    std::vector<int> leg_indices;
+    int num_of_dofs;
+    double lin_vel_scale;
+    double ang_vel_scale;
+    double dof_pos_scale;
+    double dof_vel_scale;
+    double gravity_vec_scale;
+    double clip_obs;
+    torch::Tensor clip_actions_upper;
+    torch::Tensor clip_actions_lower;
+    torch::Tensor torque_limits;
+    torch::Tensor rl_kd;
+    torch::Tensor rl_kp;
+    torch::Tensor fixed_kp;
+    torch::Tensor fixed_kd;
+    torch::Tensor commands_scale;
+    torch::Tensor default_dof_pos;
+    std::vector<std::string> joint_controller_names;
+    std::vector<std::string> action_controller_names;
+    std::vector<int> command_mapping;
+    std::vector<int> state_mapping;
+};
+
+struct Observations
+{
+    torch::Tensor lin_vel;
+    torch::Tensor ang_vel;
+    torch::Tensor gravity_vec;
+    torch::Tensor commands;
+    torch::Tensor base_quat;
+    torch::Tensor dof_pos;
+    torch::Tensor dof_vel;
+    torch::Tensor actions;
+};
+
+class RL
+{
+public:
+    RL();
+    ~RL() {};
+
+    ModelParams params;
+    Observations obs;
+
+    RobotState<double> robot_state;
+    RobotCommand<double> robot_command;
+    tbb::concurrent_queue<torch::Tensor> output_dof_pos_queue;
+    tbb::concurrent_queue<torch::Tensor> output_dof_vel_queue;
+    tbb::concurrent_queue<torch::Tensor> output_dof_tau_queue;
+
+    FSM fsm;
+    RobotState<double> start_state;
+    RobotState<double> now_state;
+    float running_percent = 0.0f;
+    bool rl_init_done = false;
+
+    // init
+    void InitObservations();
+    void InitOutputs();
+    void InitControl();
+    void InitRL(std::string robot_path);
+
+    // rl functions
+    virtual torch::Tensor Forward() = 0;
+    torch::Tensor ComputeObservation();
+    virtual void GetState(RobotState<double> *state) = 0;
+    virtual void SetCommand(const RobotCommand<double> *command) = 0;
+    void StateController(const RobotState<double> *state, RobotCommand<double> *command);
+    void ComputeOutput(const torch::Tensor &actions, torch::Tensor &output_dof_pos, torch::Tensor &output_dof_vel, torch::Tensor &output_dof_tau);
+    torch::Tensor QuatRotateInverse(torch::Tensor q, torch::Tensor v, const std::string &framework);
+
+    // yaml params
+    void ReadYamlBase(std::string robot_name);
+    // void ReadYamlRL(std::string robot_name);
+    void ReadYaml(std::string robot_name);
+
+    // csv logger
+    std::string csv_filename;
+    std::string csv_filename_standup;
+    std::string csv_filename_rl;
+    std::string csv_filename_obs;
+    void CSVInitJOINT(std::string csv_filename, std::string robot_name);
+    void CSVInitOBS(std::string csv_filename, std::string robot_name);
+    void CSVLoggerJOINT(std::string csv_filename, torch::Tensor torque, torch::Tensor tau_est, torch::Tensor joint_pos, torch::Tensor joint_pos_target, torch::Tensor joint_vel, torch::Tensor joint_vel_target);
+    void CSVLoggerOBS(std::string csv_filename, torch::Tensor obs_angvel, torch::Tensor obs_gravity, torch::Tensor obs_command, torch::Tensor obs_dofpos, torch::Tensor obs_dofvel, torch::Tensor obs_action);
+
+    void CSVInit(std::string robot_name);
+    void CSVLogger(torch::Tensor torque, torch::Tensor tau_est, torch::Tensor joint_pos, torch::Tensor joint_pos_target, torch::Tensor joint_vel);
+
+    // control
+    Control control;
+    void KeyboardInterface(); //用于外部调用键盘接口
+    std::unique_ptr<KeyboardController> keyboard_controller_;
+
+    // history buffer
+    ObservationBuffer history_obs_buf;
+    torch::Tensor history_obs;
+
+    // others
+    std::string robot_name, config_name, default_rl_config;
+    bool simulation_running = false;
+    bool is_simulation = false;
+    unsigned long long episode_length_buf = 0;
+
+    // protect func
+    void TorqueProtect(torch::Tensor origin_output_dof_tau);
+    void AttitudeProtect(const std::vector<double> &quaternion, float pitch_threshold, float roll_threshold);
+
+    // rl module
+    torch::jit::script::Module model;
+    // output buffer
+    torch::Tensor output_dof_tau;
+    torch::Tensor output_dof_pos;
+    torch::Tensor output_dof_vel;
+
+private:
+    std::map<int, std::string> motor_id_to_joint_name;  // 声明成员变量
+};
+
+template <typename T>
+T clamp(T value, T min, T max)
+{
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+}
+
+//多加一层继承，为了在FSMState中使用rl，避免交叉引用
+class RLFSMState : public FSMState
+{
+public:
+    RLFSMState(RL& rl, const RobotState<double>* state, RobotCommand<double>* command, const std::string& name)
+        : FSMState(name), rl(rl), fsm_state(state), fsm_command(command) {}
+
+    RL& rl;
+    const RobotState<double>* fsm_state;
+    RobotCommand<double>* fsm_command;
+};
+
+#endif // RL_SDK_HPP
