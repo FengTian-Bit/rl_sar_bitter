@@ -1,6 +1,3 @@
-
-
-
 bitter/robot_lab:
   model_name: "policy0917-2.pt"
   framework: "isaacsim"

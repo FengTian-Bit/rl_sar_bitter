@@ -30,6 +30,14 @@ RL_Sim::RL_Sim()
     this->joint_publishers_commands.resize(this->params.num_of_dofs);
     this->InitOutputs();
     this->InitControl();
+    this->csv_filename_standup = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/models/bitter/csv_data/csv_standup.csv";
+    this->csv_filename_rl = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/models/bitter/csv_data/csv_rl.csv";
+    this->csv_filename_obs = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/models/bitter/csv_data/csv_obs.csv";
+
+    this->CSVInitJOINT(this->csv_filename_standup, this->robot_name);
+    this->CSVInitJOINT(this->csv_filename_rl, this->robot_name);
+    this->CSVInitOBS(this->csv_filename_obs, this->robot_name);
+     
 
     // publisher
     nh.param<std::string>("ros_namespace", this->ros_namespace, ""); //launch时设置的namespace，bitter_gazebo
