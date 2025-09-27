@@ -9,12 +9,10 @@ void RLFSMState_RLLocomotion::enter()
 {
     std::cout << LOGGER::INFO << "Enter FSM RL_Locomotion mode" << std::endl;
     // read params from yaml
-    // rl.config_name = rl.default_rl_config;
-    rl.robot_name = "bitter";
-    rl.config_name = "robot_lab"; //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!yao gai diao
+    rl.config_name = "robot_lab"; 
     std::cout << LOGGER::INFO << "FSM RL_Locomotion: config_name: " << rl.config_name << std::endl; //为什么是空的
+    std::cout << LOGGER::INFO << "FSM RL_Locomotion: robot_name: " << rl.robot_name << std::endl; //为什么是空的
     std::string robot_path = rl.robot_name + "/" + rl.config_name;
-    // std::string robot_path = "go2w/robot_lab";
     try
     {
         rl.InitRL(robot_path);

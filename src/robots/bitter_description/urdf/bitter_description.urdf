@@ -5,6 +5,15 @@
 <!-- =================================================================================== -->
 <robot name="bitter_description">
 
+  <!--把机器狗吊起来-->
+  <!-- Debug mode will hung up the robot, use "true" or "false" to switch it. -->
+  <!-- <link name="world"/>
+  <joint name="base_static_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <parent link="world"/>
+      <child link="base"/>
+  </joint> -->
+
   <!--在 Gazebo 中使用 ros_control 框架来控制机器人关节（如位置、速度、力矩控制等）-->
   <gazebo>
     <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
@@ -392,7 +401,7 @@
   <!--hip指髋关节-->
   <joint name="FR_hip_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0.30195 -0.089394 0.009556"/>
-    <parent link="base"/>
+    <parent link="trunk"/>
     <child link="FR_hip"/>
     <axis xyz="1 0 0"/>
     <!--导出的是-1，绕世界坐标系的-y轴转，因为urdf导出反的，注意-->
@@ -532,7 +541,7 @@
   <!--hip指髋关节-->
   <joint name="FL_hip_joint" type="revolute">
     <origin rpy="0 0 0" xyz="0.30195 0.089394 0.009556"/>
-    <parent link="base"/>
+    <parent link="trunk"/>
     <child link="FL_hip"/>
     <axis xyz="1 0 0"/>
     <!--导出的是-1，绕世界坐标系的-y轴转，因为urdf导出反的，注意-->
@@ -674,7 +683,7 @@
   <!--hip指髋关节-->
   <joint name="RR_hip_joint" type="revolute">
     <origin rpy="0 0 0" xyz="-0.30195 -0.089394 0.009556"/>
-    <parent link="base"/>
+    <parent link="trunk"/>
     <child link="RR_hip"/>
     <axis xyz="1 0 0"/>
     <!--导出的是-1，绕世界坐标系的-y轴转，因为urdf导出反的，注意-->
@@ -815,7 +824,7 @@
   <!--hip指髋关节-->
   <joint name="RL_hip_joint" type="revolute">
     <origin rpy="0 0 0" xyz="-0.30195 0.089394 0.009556"/>
-    <parent link="base"/>
+    <parent link="trunk"/>
     <child link="RL_hip"/>
     <axis xyz="1 0 0"/>
     <!--导出的是-1，绕世界坐标系的-y轴转，因为urdf导出反的，注意-->

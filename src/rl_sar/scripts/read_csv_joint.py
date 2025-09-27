@@ -10,9 +10,11 @@ from glob import glob
 # 配置参数
 # ========================
 # TASK = "standup"
+ROBOT = "w1"
 TASK = "rl"
-CSV_DIR = f"src/rl_sar/models/bitter/csv_data"
-OUTPUT_DIR = f"src/rl_sar/models/bitter/csv_png"
+
+CSV_DIR = f"src/rl_sar/models/{ROBOT}/csv_data"
+OUTPUT_DIR = f"src/rl_sar/models/{ROBOT}/csv_png"
 CSV_FILE = os.path.join(CSV_DIR, f"csv_{TASK}.csv")
 
 

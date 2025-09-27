@@ -23,6 +23,7 @@ void RLFSMState_GetUp::run()
         for (int i = 0; i < rl.params.num_of_dofs; ++i)
         {
             fsm_command->motor_command.q[i] = (1 - rl.running_percent) * rl.start_state.motor_state.q[i] + rl.running_percent * rl.params.default_dof_pos[0][i].item<double>();
+            // fsm_command->motor_command.q[i]=calcCos(q[i], q_d[i], t_max, t);;
             fsm_command->motor_command.dq[i] = 0;
             fsm_command->motor_command.kp[i] = rl.params.fixed_kp[0][i].item<double>();
             fsm_command->motor_command.kd[i] = rl.params.fixed_kd[0][i].item<double>();
@@ -98,4 +99,10 @@ std::string RLFSMState_GetUp::checkChange()
         }
     }
     return _stateName;
+}
+
+double RLFSMState_GetUp::calcCos(double start, double stop, double T, double t) const
+{
+  double A = (stop - start) / 2.0;
+  return A * -cos(M_PI / T * t) + start + A;
 }

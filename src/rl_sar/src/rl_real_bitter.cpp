@@ -36,18 +36,6 @@ RL_Sim::RL_Sim()
     pub_cmd = nh.advertise<robot_msgs::LowlevelCmd>("/BitterCmd", 10);
 
 
-    // nh.param<std::string>("ros_namespace", this->ros_namespace, "");
-    // this->joint_publishers["BitterCmd"] = nh.advertise<robot_msgs::MotorCommand>(topic_name, 10);
-
-    // for (int i = 0; i < this->params.num_of_dofs; ++i)
-    // {
-    //     // joint need to rename as xxx_joint
-    //     const std::string &joint_name = this->params.joint_controller_names[i];
-    //     const std::string topic_name = this->ros_namespace + joint_name + "/command";
-    //     this->joint_publishers[joint_name] =
-    //         nh.advertise<robot_msgs::MotorCommand>(topic_name, 10);
-    // }
-
     // subscriber待改
     this->cmd_vel_subscriber = nh.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, &RL_Sim::CmdvelCallback, this);
     this->joy_subscriber = nh.subscribe<sensor_msgs::Joy>("/joy", 10, &RL_Sim::JoyCallback, this);
@@ -68,30 +56,6 @@ RL_Sim::RL_Sim()
     // this->model_state_subscriber = nh.subscribe<gazebo_msgs::ModelStates>("/gazebo/model_states", 10, &RL_Sim::ModelStatesCallback, this);
 
 //待改
-
-    // const std::string topic_name = this->ros_namespace + "/BitterState";
-    // for (int i = 0; i < this->params.num_of_dofs; ++i)
-    // {
-    //     // joint need to rename as xxx_joint
-    //     const std::string &joint_name = this->params.joint_controller_names[i];
-    //     const std::string topic_name = this->ros_namespace + joint_name + "/state";
-    //     this->joint_subscribers[joint_name] =
-    //         nh.subscribe<robot_msgs::MotorState>(topic_name, 10,
-    //             [this, joint_name](const robot_msgs::MotorState::ConstPtr &msg)
-    //             {
-    //                 this->JointStatesCallback(msg, joint_name);
-    //             }
-    //         );
-    //     this->joint_positions[joint_name] = 0.0;
-    //     this->joint_velocities[joint_name] = 0.0;
-    //     this->joint_efforts[joint_name] = 0.0;
-    // }
-
-    // service待改
-    // nh.param<std::string>("gazebo_model_name", this->gazebo_model_name, "");
-    // this->gazebo_set_model_state_client = nh.serviceClient<gazebo_msgs::SetModelState>("/gazebo/set_model_state");
-    // this->gazebo_pause_physics_client = nh.serviceClient<std_srvs::Empty>("/gazebo/pause_physics");
-    // this->gazebo_unpause_physics_client = nh.serviceClient<std_srvs::Empty>("/gazebo/unpause_physics");
 
     // loop
     this->loop_control = std::make_shared<LoopFunc>("loop_control", this->params.dt, std::bind(&RL_Sim::RobotControl, this));
