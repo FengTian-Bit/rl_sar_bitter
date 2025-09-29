@@ -16,6 +16,7 @@ RL_Sim::RL_Sim()
 
     // read params from yaml
     nh.param<std::string>("robot_name", this->robot_name, "");
+    std::cout<<"robot_name: "<<this->robot_name<<std::endl;
     nh.param<std::string>("config_name", this->default_rl_config, "robot_lab");
     std::cout<<"RL_Sim: robot_name: "<<this->robot_name<<std::endl;
     std::cout<<"RL_Sim: config_name: "<<this->default_rl_config<<std::endl;
@@ -30,6 +31,15 @@ RL_Sim::RL_Sim()
     this->joint_publishers_commands.resize(this->params.num_of_dofs);
     this->InitOutputs();
     this->InitControl();
+    //
+    this->csv_filename_standup = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/models/"+ this->robot_name+"/csv_data/csv_standup.csv";
+    this->csv_filename_rl = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/models/"+ this->robot_name+"/csv_data/csv_rl.csv";
+    this->csv_filename_obs = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/models/"+ this->robot_name+"/csv_data/csv_obs.csv";
+
+    this->CSVInitJOINT(this->csv_filename_standup, this->robot_name);
+    this->CSVInitJOINT(this->csv_filename_rl, this->robot_name);
+    this->CSVInitOBS(this->csv_filename_obs, this->robot_name);
+     
 
     // publisher
     nh.param<std::string>("ros_namespace", this->ros_namespace, ""); //launch时设置的namespace，bitter_gazebo
@@ -44,7 +54,7 @@ RL_Sim::RL_Sim()
     
     //rosbag 用的imu数据
     //BitterImu获取二代imu状态
-    this->imu_state_subscriber = nh.subscribe<robot_msgs::BitterImu>("/BitterImu", 10, &RL_Sim::ImuCallback, this);
+    // this->imu_state_subscriber = nh.subscribe<robot_msgs::BitterImu>("/BitterImu", 10, &RL_Sim::ImuCallback, this);
 
     // subscriber
     this->cmd_vel_subscriber = nh.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, &RL_Sim::CmdvelCallback, this);

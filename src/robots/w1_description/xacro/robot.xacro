@@ -1,0 +1,342 @@
+<?xml version="1.0"?>
+
+<robot name="w1" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!-- 导入urdf改标签的xacro文件 -->
+    <xacro:include filename="$(find w1_description)/xacro/w1_description.xacro" />
+
+    <!-- 导入ros1的gazebo插件 -->
+    <gazebo>
+      <plugin filename="libgazebo_ros_control.so" name="gazebo_ros_control">
+        <robotNamespace>/w1_gazebo</robotNamespace>
+        <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+      </plugin>
+    </gazebo>
+    <!--在Gazebo仿真环境中实时发布机器人基础坐标系（base link）的精确3D位姿信息-->
+    <gazebo>
+        <plugin filename="libgazebo_ros_p3d.so" name="p3d_base_controller">
+            <alwaysOn>true</alwaysOn>
+            <updateRate>1000.0</updateRate>
+            <bodyName>base</bodyName>
+            <topicName>ground_truth/state</topicName>
+            <gaussianNoise>0</gaussianNoise>
+            <frameName>world</frameName>
+            <xyzOffsets>0 0 0</xyzOffsets>
+            <rpyOffsets>0 0 0</rpyOffsets>
+        </plugin>
+    </gazebo>
+    <gazebo reference="base_link">
+        <maxVel>100.</maxVel>
+        <kp>10000.</kp>
+        <kd>0.</kd>
+    </gazebo>
+    <gazebo reference="stick_link">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <material>Gazebo/White</material>
+    </gazebo>
+    <!-- LF leg -->
+    <gazebo reference="LF_hip">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <material>Gazebo/DarkGrey</material>
+    </gazebo>
+    <gazebo reference="LF_thigh">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <self_collide>0</self_collide>
+        <material>Gazebo/DarkGrey</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+    <gazebo reference="LF_calf">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <self_collide>1</self_collide>
+    </gazebo>
+    <gazebo reference="LF_wheel">
+        <mu1>0.6</mu1>
+        <mu2>0.6</mu2>
+        <self_collide>1</self_collide>
+        <material>Gazebo/DarkGrey</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+    <gazebo reference="LF_foot">
+        <mu1>0.6</mu1>
+        <mu2>0.6</mu2>
+        <self_collide>0</self_collide>
+        <material>Gazebo/White</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+    <!-- RF leg -->
+    <gazebo reference="RF_hip">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <material>Gazebo/DarkGrey</material>
+    </gazebo>
+    <gazebo reference="RF_thigh">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <self_collide>0</self_collide>
+        <material>Gazebo/DarkGrey</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+    <gazebo reference="RF_calf">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <self_collide>1</self_collide>
+    </gazebo>
+    <gazebo reference="RF_wheel">
+        <mu1>0.6</mu1>
+        <mu2>0.6</mu2>
+        <self_collide>1</self_collide>
+        <material>Gazebo/DarkGrey</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+    <gazebo reference="RF_foot">
+        <mu1>0.6</mu1>
+        <mu2>0.6</mu2>
+        <self_collide>0</self_collide>
+        <material>Gazebo/White</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+    <!-- LH leg -->
+    <gazebo reference="LH_hip">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <material>Gazebo/DarkGrey</material>
+    </gazebo>
+    <gazebo reference="LH_thigh">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <self_collide>0</self_collide>
+        <material>Gazebo/DarkGrey</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+    <gazebo reference="LH_calf">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <self_collide>1</self_collide>
+    </gazebo>
+    <gazebo reference="LH_wheel">
+        <mu1>0.6</mu1>
+        <mu2>0.6</mu2>
+        <self_collide>1</self_collide>
+        <material>Gazebo/DarkGrey</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+    <gazebo reference="LH_foot">
+        <mu1>0.6</mu1>
+        <mu2>0.6</mu2>
+        <self_collide>0</self_collide>
+        <material>Gazebo/White</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+    <!-- RH leg -->
+    <gazebo reference="RH_hip">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <material>Gazebo/DarkGrey</material>
+    </gazebo>
+    <gazebo reference="RH_thigh">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <self_collide>0</self_collide>
+        <material>Gazebo/DarkGrey</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+    <gazebo reference="RH_calf">
+        <mu1>0.2</mu1>
+        <mu2>0.2</mu2>
+        <self_collide>1</self_collide>
+    </gazebo>
+    <gazebo reference="RH_wheel">
+        <mu1>0.6</mu1>
+        <mu2>0.6</mu2>
+        <self_collide>1</self_collide>
+        <material>Gazebo/DarkGrey</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+    <gazebo reference="RH_foot">
+        <mu1>0.6</mu1>
+        <mu2>0.6</mu2>
+        <self_collide>0</self_collide>
+        <material>Gazebo/White</material>
+        <kp value="1000000.0" />
+        <kd value="1.0" />
+    </gazebo>
+
+    <transmission name="FL_hip_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="FL_hip_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="FL_hip_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="FL_thigh_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="FL_thigh_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="FL_thigh_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="FL_calf_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="FL_calf_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="FL_calf_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="FL_foot_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="FL_foot_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="FL_foot_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="FR_hip_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="FR_hip_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="FR_hip_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="FR_thigh_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="FR_thigh_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="FR_thigh_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="FR_calf_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="FR_calf_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="FR_calf_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="FR_foot_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="FR_foot_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="FR_foot_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="RL_hip_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="RL_hip_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="RL_hip_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="RL_thigh_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="RL_thigh_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="RL_thigh_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="RL_calf_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="RL_calf_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="RL_calf_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="RL_foot_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="RL_foot_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="RL_foot_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="RR_hip_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="RR_hip_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="RR_hip_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="RR_thigh_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="RR_thigh_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="RR_thigh_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="RR_calf_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="RR_calf_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="RR_calf_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+    <transmission name="RR_foot_tran">
+        <type>transmission_interface/SimpleTransmission</type>
+        <joint name="RR_foot_joint">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="RR_foot_motor">
+            <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+</robot>

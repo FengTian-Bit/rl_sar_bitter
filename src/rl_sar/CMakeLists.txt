@@ -79,6 +79,10 @@ set(UNITREE_A1_LIBS Threads::Threads unitree_legged_sdk lcm)
 set(BUILD_EXAMPLES OFF CACHE BOOL "Disable examples build for unitree_sdk2" FORCE)
 add_subdirectory(library/thirdparty/unitree_sdk2-2.0.0)
 
+# wheellegged-sdk-lowlevel  w1
+set(BUILD_EXAMPLES OFF CACHE BOOL "Disable examples build for wheellegged-sdk-lowlevel" FORCE)
+add_subdirectory(library/thirdparty/wheellegged-sdk-lowlevel)
+
 # l4w4_sdk
 add_library(l4w4_sdk INTERFACE)
 target_include_directories(l4w4_sdk INTERFACE
@@ -97,12 +101,17 @@ include_directories(
   library/core/rl_sdk
   library/core/loop
   library/core/fsm
+  library/thirdparty/wheellegged-sdk-lowlevel/include
+  library/thirdparty/wheellegged-sdk-lowlevel/examples
+
 )
 
 # 自动收集fsm目录下的所有.cpp文件
 file(GLOB FSM_SOURCES CONFIGURE_DEPENDS "library/core/fsm/*.cpp")
 # 自动收集rl_sdk目录下的所有.cpp文件
 file(GLOB RL_SDK_SOURCES CONFIGURE_DEPENDS "library/core/rl_sdk/*.cpp")
+# 自动收集wheellegged-sdk-lowlevel目录下的所有.cpp文件
+file(GLOB WHEEL_LEGGED_SDK_SOURCES CONFIGURE_DEPENDS "library/thirdparty/wheellegged-sdk-lowlevel/*.cpp")
 
 add_library(rl_sdk 
 library/core/rl_sdk/rl_sdk.cpp
@@ -110,7 +119,7 @@ ${FSM_SOURCES}
 ${RL_SDK_SOURCES}
 )
 set_target_properties(rl_sdk PROPERTIES
-    CXX_STANDARD 14
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
 target_link_libraries(rl_sdk PUBLIC
@@ -129,7 +138,7 @@ endif()
 add_library(observation_buffer library/core/observation_buffer/observation_buffer.cpp)
 target_link_libraries(observation_buffer PUBLIC "${TORCH_LIBRARIES}")
 set_target_properties(observation_buffer PROPERTIES
-    CXX_STANDARD 14
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
 
@@ -194,4 +203,15 @@ if(USE_CATKIN)
     scripts/actuator_net.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   )
+endif()
+
+add_executable(rl_real_w1 src/rl_real_w1.cpp)
+target_link_libraries(rl_real_w1 PRIVATE
+  wheellegged_sdk_lowlevel
+  rl_sdk
+  observation_buffer
+  yaml-cpp
+)
+if(USE_CATKIN)
+  target_link_libraries(rl_real_w1 PRIVATE ${catkin_LIBRARIES})
 endif()

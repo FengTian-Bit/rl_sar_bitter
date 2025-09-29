@@ -20,7 +20,7 @@ public:
     void run() override;
     void exit() override;
     std::string checkChange() override;
-
+    double calcCos(double start, double stop, double T, double t) const;
 
 private:
 };

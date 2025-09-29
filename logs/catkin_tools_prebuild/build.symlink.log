@@ -1,0 +1,13 @@
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/./setup.fish
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/./local_setup.fish
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/./local_setup.zsh
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/./env.sh
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/./local_setup.sh
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/./setup.zsh
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/./local_setup.bash
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/./_setup_util.py
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/./setup.sh
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/./setup.bash
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/lib/pkgconfig/catkin_tools_prebuild.pc
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/share/catkin_tools_prebuild/cmake/catkin_tools_prebuildConfig.cmake
+Symlinking /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/share/catkin_tools_prebuild/cmake/catkin_tools_prebuildConfig-version.cmake

@@ -1,0 +1,13 @@
+[33mWARNING: package 'gazebo_ros' is deprecated (This package has been deprecated as of January 2025 with Gazebo classic 11 reaching[0m
+      end-of-life. Users are highly encouraged to migrate to the new Gazebo
+      using our migration guides (https://gazebosim.org/docs/latest/gazebo_classic_migration))
+[33mWARNING: package 'gazebo_msgs' is deprecated (This package has been deprecated as of January 2025 with Gazebo classic 11 reaching[0m
+      end-of-life. Users are highly encouraged to migrate to the new Gazebo
+      using our migration guides (https://gazebosim.org/docs/latest/gazebo_classic_migration))
+[33m[1mCMake Warning[0m at /usr/share/cmake-3.16/Modules/FindProtobuf.cmake:499 (message):
+  Protobuf compiler version 25.3 doesn't match library version 3.6.1
+[36mCall Stack (most recent call first):[0m
+  /usr/lib/x86_64-linux-gnu/cmake/gazebo/gazebo-config.cmake:206 (find_package)
+  CMakeLists.txt:47 (find_package)
+
+

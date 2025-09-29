@@ -1,5 +1,9 @@
+
 cmake_minimum_required(VERSION 3.0.2)
 project(wheeltec_joy)  # 必须与 package.xml 的 <name> 一致
+# 设置 C++17 标准
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -8,8 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## 设置 C++11 标准
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+##set(CMAKE_CXX_STANDARD 11)
+##set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 ## 头文件路径
 include_directories(
