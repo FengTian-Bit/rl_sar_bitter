@@ -1,0 +1,8 @@
+prefix=/home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/install
+
+Name: robot_joint_controller
+Description: Description of robot_joint_controller
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib -lrobot_joint_controller
+Requires: robot_msgs controller_interface hardware_interface pluginlib roscpp
