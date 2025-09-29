@@ -1,1 +1,0 @@
-/home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/devel/.private/b2w_description/share/b2w_description/cmake/b2w_descriptionConfig.cmake

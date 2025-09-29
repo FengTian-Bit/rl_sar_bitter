@@ -1,8 +1,0 @@
-prefix=/home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/install
-
-Name: robot_msgs
-Description: Description of robot_msgs
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: message_runtime std_msgs geometry_msgs sensor_msgs

@@ -1,8 +1,0 @@
-prefix=/home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/install
-
-Name: gr1t1_description
-Description: Description of gr1t1_description
-Version: 1.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 

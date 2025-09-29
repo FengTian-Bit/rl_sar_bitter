@@ -1,6 +1,0 @@
-# CMake generated Testfile for 
-# Source directory: /usr/src/googletest/googletest
-# Build directory: /home/tf/rl_sar_bitter/rl_sar_w1/rl_sar_bitter/build/a1_description/gtest/googletest
-# 
-# This file includes the relevant testing commands required for 
-# testing this directory and lists subdirectories to be tested as well.
