@@ -12,7 +12,8 @@ RL_Real::RL_Real()
 
     // init ros
     ros::NodeHandle nh;
-    this->cmd_vel_subscriber = nh.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, &RL_Real::CmdvelCallback, this); //暂时没用到
+    this->cmd_vel_subscriber = nh.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, &RL_Real::CmdvelCallback, this);
+    this->joy_subscriber = nh.subscribe<sensor_msgs::Joy>("/joy", 10, &RL_Real::JoyCallback, this);
 
     this->robot_name = "w1";
     this->default_rl_config = "robot_lab";
@@ -247,6 +248,7 @@ void RL_Real::RunModel()
         std::cout << "Control commands: x=" << this->control.x 
                 << ", y=" << this->control.y 
                 << ", yaw=" << this->control.yaw << std::endl;
+
     }
 }
 
@@ -316,34 +318,37 @@ void RL_Real::InitLowCmd(int num_of_dofs)
 
 void RL_Real::InitRobotStateClient(std::string robot_ip)
 {   
+
     this->rsc = limxsdk::Wheellegged::getInstance();       
     if (!this->rsc->init(robot_ip))
     {
         exit(1); // Exit if initialization fails
     }
 
-    //校准状态
-    // bool is_calibration = false;
-    // Subscribing to diagnostic values for calibration state
-    // this->rsc->subscribeDiagnosticValue([&](const limxsdk::DiagnosticValueConstPtr& msg) {
-    // // Check if the diagnostic message pertains to calibration
-    // if (msg->name == "calibration") {
-    //   if (msg->code == 0) {
-    //     is_calibration = true;
-    //   }
-    //   std::cout<<"code: "<<is_calibration<<std::endl;
-    // }
-    // std::cout<<msg->name<<std::endl;
-    // });
+}
 
-    // std::cout<<this->rsc->getMotorNumber()<<std::endl;
-    // this->rsc->subscribeRobotState(std::bind(&RL_Real::RobotStateCallback, this, std::placeholders::_1));
-    // std::cout << "Waitting calibration begin." << std::endl;
-    // while(!is_calibration) {
-    //     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    // }
-    // std::cout << "Waitting calibration end." << std::endl;
-    //结束校准
+void RL_Real::JoyCallback(const sensor_msgs::Joy::ConstPtr &msg)
+{
+    this->joy_msg = *msg;
+
+ // joystick control 白色遥控器
+    // Description of buttons and axes(F710):
+    // |__ buttons[]: A=0, B=1, X=2, Y=3, LB=4, RB=5, 中左=6, 中右=7, logo=8, none=9, none=10
+    // |__ axes[]: Lx=0, Ly=1, Rx=3(左1右-1), Ry=4(上1下-1), LT=2(常1，按可至-1), RT=5（常1，按可至-1），向左右=6（左1右-1），向上下=7（上1下-1）
+    if (this->joy_msg.axes[2]<0) //LT
+    {
+        if (this->joy_msg.buttons[3])      this->control.SetControlState(STATE_POS_GETUP);       // LT+Y 
+        else if (this->joy_msg.buttons[0]) this->control.SetControlState(STATE_POS_GETDOWN);     // LT+A
+        else if (this->joy_msg.buttons[1]) this->control.SetControlState(STATE_RL_LOCOMOTION);   // LT+B
+        else if (this->joy_msg.buttons[2]) this->control.SetControlState(STATE_RL_NAVIGATION);   // LT+X
+    }
+
+    if (this->joy_msg.buttons[6])  this->control.SetControlState(STATE_RESET_SIMULATION);  // 中左 重置仿真
+    if (this->joy_msg.buttons[7])  this->control.SetControlState(STATE_TOGGLE_SIMULATION); // 中右 暂停仿真
+
+    this->control.x = this->joy_msg.axes[1] * 0.75;   // Ly
+    this->control.y = this->joy_msg.axes[3] * 0.5;    // Rx
+    this->control.yaw = this->joy_msg.axes[0] * 0.25; // Lx
 }
 
 void RL_Real::ImuDataCallback(const limxsdk::ImuDataConstPtr &msg)
@@ -356,17 +361,13 @@ void RL_Real::ImuDataCallback(const limxsdk::ImuDataConstPtr &msg)
 void RL_Real::RobotStateCallback(const limxsdk::RobotStateConstPtr &msg)
 {
   mtx_.lock();
-  robot_state_ = *msg; //这里赋值了
+  robot_state_ = *msg;
   for (uint16_t i = 0; i < msg->q.size(); i++) 
   {
     robot_state_.q[i] = msg->q[i];
     // std::cout<<"joint "<< i<<": "<<robot_state_.q[i]<<std::endl;
   }
   mtx_.unlock();
-//   if (!recv_)
-//   {
-//     recv_ = true;
-//   }
 }
 
 void RL_Real::CmdvelCallback(const geometry_msgs::Twist::ConstPtr &msg)
@@ -385,10 +386,8 @@ int main(int argc, char **argv)
 {
     signal(SIGINT, signalHandler);
     ros::init(argc, argv, "rl_sar");
-    // 启动rl
+    
     RL_Real rl_sar;
-
-    // ros::spin(); //有ros就用事件驱动
 
     while (true) {
         std::this_thread::sleep_for(std::chrono::seconds(10));

@@ -27,8 +27,10 @@ void RLFSMState_RLNavigation::enter()
 
 void RLFSMState_RLNavigation::run()
 {
-    std::cout << "\r" << std::flush << LOGGER::INFO << "RL Controller x:" << rl.control.x << " y:" << rl.control.y << " yaw:" << rl.control.yaw << std::flush;
+    std::cout << "\r" << std::flush << LOGGER::INFO << "ReceiveCommand x:" << rl.control.x << " y:" << rl.control.y << " yaw:" << rl.control.yaw << std::flush;
+    
     torch::Tensor _output_dof_pos, _output_dof_vel;
+    
     if (rl.output_dof_pos_queue.try_pop(_output_dof_pos) && rl.output_dof_vel_queue.try_pop(_output_dof_vel))
     {
         for (int i = 0; i < rl.params.num_of_dofs; ++i)
@@ -44,6 +46,7 @@ void RLFSMState_RLNavigation::run()
             fsm_command->motor_command.kp[i] = rl.params.rl_kp[0][i].item<double>();
             fsm_command->motor_command.kd[i] = rl.params.rl_kd[0][i].item<double>();
             fsm_command->motor_command.tau[i] = 0;
+            // fsm_command->motor_command.tau[i] = 0;
         }
     }
 }

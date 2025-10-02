@@ -8,16 +8,17 @@ RLFSMState_RLLocomotion::~RLFSMState_RLLocomotion(){}
 void RLFSMState_RLLocomotion::enter()
 {
     std::cout << LOGGER::INFO << "Enter FSM RL_Locomotion mode" << std::endl;
+
     // read params from yaml
-    rl.config_name = "robot_lab"; 
-    std::cout << LOGGER::INFO << "FSM RL_Locomotion: config_name: " << rl.config_name << std::endl; //为什么是空的
-    std::cout << LOGGER::INFO << "FSM RL_Locomotion: robot_name: " << rl.robot_name << std::endl; //为什么是空的
+    rl.config_name = rl.default_rl_config;
     std::string robot_path = rl.robot_name + "/" + rl.config_name;
+    std::cout << LOGGER::INFO << "FSM RL_Locomotion: config_name: " << rl.config_name << std::endl; 
+    // std::cout << LOGGER::INFO << "FSM RL_Locomotion: robot_name: " << rl.robot_name << std::endl; 
     try
     {
         rl.InitRL(robot_path);
         rl.rl_init_done = true;
-        std::cout << LOGGER::INFO << "InitRL() success" << std::endl;
+        // std::cout << LOGGER::INFO << "InitRL() success" << std::endl;
     }
     catch (const std::exception& e)
     {
@@ -29,7 +30,7 @@ void RLFSMState_RLLocomotion::enter()
 
 void RLFSMState_RLLocomotion::run()
 {
-        // std::cout << "\r" << std::flush << LOGGER::INFO << "RL Controller x:" << rl.control.x << " y:" << rl.control.y << " yaw:" << rl.control.yaw << std::flush;
+        std::cout << "\r" << std::flush << LOGGER::INFO << "RL Controller x:" << rl.control.x << " y:" << rl.control.y << " yaw:" << rl.control.yaw << std::flush;
 
         torch::Tensor _output_dof_pos, _output_dof_vel;
         if (rl.output_dof_pos_queue.try_pop(_output_dof_pos) && rl.output_dof_vel_queue.try_pop(_output_dof_vel))

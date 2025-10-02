@@ -16,7 +16,7 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/Twist.h>
-
+#include <sensor_msgs/Joy.h>
 #include <iostream>
 #include <mutex>
 #include <thread>
@@ -25,9 +25,6 @@
 #include <Eigen/Dense>
 #include "limxsdk/wheellegged.h"
 #include "common/util.h"
-
-
-
 #include "matplotlibcpp.h"
 namespace plt = matplotlibcpp;
 
@@ -87,10 +84,13 @@ private:
     int state_mapping[16] = {0, 1, 2, 3, 8, 9, 10, 11, 4, 5, 6, 7, 12, 13, 14, 15};
 
     
-    // ros 暂时用不到
+    // ros
     geometry_msgs::Twist cmd_vel;
+    sensor_msgs::Joy joy_msg;
     ros::Subscriber cmd_vel_subscriber;
+    ros::Subscriber joy_subscriber;
     void CmdvelCallback(const geometry_msgs::Twist::ConstPtr &msg);
+    void JoyCallback(const sensor_msgs::Joy::ConstPtr &msg);
 
 };
 

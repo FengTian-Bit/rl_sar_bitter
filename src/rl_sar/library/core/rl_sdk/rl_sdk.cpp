@@ -181,7 +181,7 @@ void RL::InitControl()
 
 void RL::InitRL(std::string robot_path)
 {
-    this->ReadYaml(robot_path); //打印robot_path: go2w/robot_lab,bitter/robot_lab
+    this->ReadYaml(robot_path); //w1/robot_lab or bitter/robot_lab
 
     for (std::string &observation : this->params.observations)
     {
@@ -354,9 +354,7 @@ void RL::AttitudeProtect(const std::vector<double> &quaternion, float pitch_thre
 //调用keyboard_controller类，在那里改键位
 void RL::KeyboardInterface()
 {
-
     this->keyboard_controller_->processInput();
-
 }
 
 template <typename T>
@@ -372,8 +370,7 @@ std::vector<T> ReadVectorFromYaml(const YAML::Node &node)
 
 void RL::ReadYamlBase(std::string robot_path)
 {
-    // The config file is located at "rl_sar/src/rl_sar/models/<robot_path>/base.yaml"
-    // std::string config_path = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/models/" + robot_path + "/base.yaml";
+    //read config file from "rl_sar/src/rl_sar/models/<robot_path>/base.yaml"
     std::string config_path = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/models/" + robot_path + "/base.yaml";
     std::cout<<"RL ReadYamlBase: config_path: "<<config_path<<std::endl;
 
@@ -401,6 +398,7 @@ void RL::ReadYamlBase(std::string robot_path)
     this->params.action_controller_names = ReadVectorFromYaml<std::string>(config["action_controller_names"]);
     this->params.command_mapping = ReadVectorFromYaml<int>(config["command_mapping"]);
     this->params.state_mapping = ReadVectorFromYaml<int>(config["state_mapping"]);
+    this->params.home_dof_pos = torch::tensor(ReadVectorFromYaml<double>(config["home_dof_pos"])).view({1, -1});
 
 }
 

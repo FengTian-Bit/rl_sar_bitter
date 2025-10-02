@@ -14,10 +14,10 @@ RL_Sim::RL_Sim()
 
     ros::NodeHandle nh;
 
-    // read params from yaml
+    // read params from yaml 从lanch文件中读取robot_name和config_name
     nh.param<std::string>("robot_name", this->robot_name, "");
-    std::cout<<"robot_name: "<<this->robot_name<<std::endl;
     nh.param<std::string>("config_name", this->default_rl_config, "robot_lab");
+
     std::cout<<"RL_Sim: robot_name: "<<this->robot_name<<std::endl;
     std::cout<<"RL_Sim: config_name: "<<this->default_rl_config<<std::endl;
 
@@ -31,7 +31,8 @@ RL_Sim::RL_Sim()
     this->joint_publishers_commands.resize(this->params.num_of_dofs);
     this->InitOutputs();
     this->InitControl();
-    //
+    
+    //csv logger
     this->csv_filename_standup = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/models/"+ this->robot_name+"/csv_data/csv_standup.csv";
     this->csv_filename_rl = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/models/"+ this->robot_name+"/csv_data/csv_rl.csv";
     this->csv_filename_obs = std::string(CMAKE_CURRENT_SOURCE_DIR) + "/models/"+ this->robot_name+"/csv_data/csv_obs.csv";
@@ -40,9 +41,8 @@ RL_Sim::RL_Sim()
     this->CSVInitJOINT(this->csv_filename_rl, this->robot_name);
     this->CSVInitOBS(this->csv_filename_obs, this->robot_name);
      
-
     // publisher
-    nh.param<std::string>("ros_namespace", this->ros_namespace, ""); //launch时设置的namespace，bitter_gazebo
+    nh.param<std::string>("ros_namespace", this->ros_namespace, ""); //launch设置，eg bitter_gazebo
     for (int i = 0; i < this->params.num_of_dofs; ++i)
     {
         // joint need to rename as xxx_joint
@@ -52,14 +52,13 @@ RL_Sim::RL_Sim()
             nh.advertise<robot_msgs::MotorCommand>(topic_name, 10);
     }
     
-    //rosbag 用的imu数据
-    //BitterImu获取二代imu状态
+    // BitterImu获取二代imu状态，用于rosbag回放imu数据
     // this->imu_state_subscriber = nh.subscribe<robot_msgs::BitterImu>("/BitterImu", 10, &RL_Sim::ImuCallback, this);
 
     // subscriber
     this->cmd_vel_subscriber = nh.subscribe<geometry_msgs::Twist>("/cmd_vel", 10, &RL_Sim::CmdvelCallback, this);
     this->joy_subscriber = nh.subscribe<sensor_msgs::Joy>("/joy", 10, &RL_Sim::JoyCallback, this);
-    this->model_state_subscriber = nh.subscribe<gazebo_msgs::ModelStates>("/gazebo/model_states", 10, &RL_Sim::ModelStatesCallback, this); //Gazebo仿真器发布的所有模型状态
+    this->model_state_subscriber = nh.subscribe<gazebo_msgs::ModelStates>("/gazebo/model_states", 10, &RL_Sim::ModelStatesCallback, this); 
     for (int i = 0; i < this->params.num_of_dofs; ++i)
     {
         // joint need to rename as xxx_joint
@@ -136,7 +135,7 @@ void RL_Sim::GetState(RobotState<double> *state)
         state->imu.quaternion[1] = this->pose.orientation.x;
         state->imu.quaternion[2] = this->pose.orientation.y;
         state->imu.quaternion[3] = this->pose.orientation.z;
-        //打印pose.orientation为一行，多保留6位小数
+        //打印pose.orientation.w, x, y, z为一行
         // std::cout << "pose.orientation.w: " << std::fixed << std::setprecision(5) << this->pose.orientation.w << " "
         //           << "pose.orientation.x: " << std::fixed << std::setprecision(5) << this->pose.orientation.x << " "
         //           << "pose.orientation.y: " << std::fixed << std::setprecision(5) << this->pose.orientation.y << " "
@@ -157,13 +156,12 @@ void RL_Sim::GetState(RobotState<double> *state)
     // state->imu.gyroscope[1] = this->gyroscope[1];
     // state->imu.gyroscope[2] = this->gyroscope[2];
 
-    // state->imu.accelerometer
-
     for (int i = 0; i < this->params.num_of_dofs; ++i)
     {
         state->motor_state.q[i] = this->joint_positions[this->params.joint_controller_names[i]];
         state->motor_state.dq[i] = this->joint_velocities[this->params.joint_controller_names[i]];
         state->motor_state.tau_est[i] = this->joint_efforts[this->params.joint_controller_names[i]];
+
         //打印电机id,q,dq,tau为一行
         // std::cout << "State motor[" << i << "]: " << std::fixed << std::setprecision(5) << state->motor_state.q[i] << " "
         //           << std::fixed << std::setprecision(5) << state->motor_state.dq[i] << " "  
@@ -182,6 +180,7 @@ void RL_Sim::SetCommand(const RobotCommand<double> *command)
         this->joint_publishers_commands[i].kp = command->motor_command.kp[i];
         this->joint_publishers_commands[i].kd = command->motor_command.kd[i];
         this->joint_publishers_commands[i].tau = command->motor_command.tau[i];
+
         //打印电机id,q,dq,tau为一行
         // std::cout << "Command motor[" << i << "]: " << std::fixed << std::setprecision(5) << this->joint_publishers_commands[i].q << " "
         //           << std::fixed << std::setprecision(5) << this->joint_publishers_commands[i].dq << " "
@@ -192,6 +191,7 @@ void RL_Sim::SetCommand(const RobotCommand<double> *command)
         //     this->joint_publishers_commands[i].dq = 0;
         //     this->joint_publishers_commands[i].tau = 0;
         // }
+
     }
 
     for (int i = 0; i < this->params.num_of_dofs; ++i)
@@ -239,10 +239,10 @@ void RL_Sim::RobotControl()
 void RL_Sim::ModelStatesCallback(const gazebo_msgs::ModelStates::ConstPtr &msg)
 {
     this->vel = msg->twist[2];
-    this->pose = msg->pose[2]; //里面有imu数据
+    this->pose = msg->pose[2]; //include imu date
 }
 
-//从rosbag中获取
+//用于rosbag回放imu数据
 void RL_Sim::ImuCallback(const robot_msgs::BitterImu::ConstPtr &msg)
 {
     this->quaternion[0] = msg->quat[0];
@@ -255,60 +255,77 @@ void RL_Sim::ImuCallback(const robot_msgs::BitterImu::ConstPtr &msg)
     this->gyroscope[2] = msg->angular_vel_local[2];
 }
 
+//用于上层navigation
 void RL_Sim::CmdvelCallback(const geometry_msgs::Twist::ConstPtr &msg)
 {
     this->cmd_vel = *msg;
-    // std::cout << "Received cmd_vel: linear=(" << this->cmd_vel.linear.x << ", " << this->cmd_vel.linear.y << ", " << this->cmd_vel.linear.z << "), angular=(" << this->cmd_vel.angular.x << ", " << this->cmd_vel.angular.y << ", " << this->cmd_vel.angular.z << ")" << std::endl;
 }
 
 void RL_Sim::JoyCallback(const sensor_msgs::Joy::ConstPtr &msg)
 {
     this->joy_msg = *msg;
 
-    // joystick control
+ // joystick control 白色遥控器
+ {
     // Description of buttons and axes(F710):
-    // |__ buttons[]: Y=0, B=1, A=2, X=3, L1=4, R1=5, L2=6, R2=7, select=8, start=9, mode=10
-    // |__ axes[]: Lx=0, Ly=1, Rx=3, Ry=4, LT=2, RT=5
-    if (this->joy_msg.buttons[7]) //R2
-    {
-        if (this->joy_msg.buttons[0]) // R2+Y
-        {
-            this->control.SetControlState(STATE_POS_GETUP);
-        }
-        else if (this->joy_msg.buttons[2]) // R2+A
-        {
-            this->control.SetControlState(STATE_POS_GETDOWN);
-        }
-        else if (this->joy_msg.buttons[1]) // R2+B
-        {
-            this->control.SetControlState(STATE_RL_LOCOMOTION);
-        }
-        else if (this->joy_msg.buttons[3]) // R2+X
-        {
-            this->control.SetControlState(STATE_RESET_SIMULATION);
-        }
-        // else if (this->joy_msg.axes[7] < 0) // DOWN
-        // {
-        //     this->control.SetControlState(STATE_RL_NAVIGATION);
-        // }
-    }
-    if (this->joy_msg.buttons[6]) // L2
-    {
-        this->control.SetControlState(STATE_TOGGLE_SIMULATION);
-    }
-    if(this->joy_msg.buttons[5]) //L1
-    {
-        if (this->joy_msg.buttons[1]) //L1+B
-        {
-            this->control.SetControlState(STATE_WHEEL);
-        }
+    // |__ buttons[]: A=0, B=1, X=2, Y=3, LB=4, RB=5, 中左=6, 中右=7, logo=8, none=9, none=10
+    // |__ axes[]: Lx=0, Ly=1, Rx=3(左1右-1), Ry=4(上1下-1), LT=2(常1，按可至-1), RT=5（常1，按可至-1），向左右=6（左1右-1），向上下=7（上1下-1）
 
+    if (this->joy_msg.axes[2]<0) //LT
+    {
+        if (this->joy_msg.buttons[3])      this->control.SetControlState(STATE_POS_GETUP);       // LT+Y 
+        else if (this->joy_msg.buttons[0]) this->control.SetControlState(STATE_POS_GETDOWN);     // LT+A
+        else if (this->joy_msg.buttons[1]) this->control.SetControlState(STATE_RL_LOCOMOTION);   // LT+B
+        else if (this->joy_msg.buttons[2]) this->control.SetControlState(STATE_RL_NAVIGATION);   // LT+X
     }
 
-    this->control.x = this->joy_msg.axes[1] * 0.5; // Ly
-    this->control.y = this->joy_msg.axes[0] * 0.5; // Lx
-    this->control.yaw = this->joy_msg.axes[3] * 0.5; // Rx
-    
+    if (this->joy_msg.buttons[6])  this->control.SetControlState(STATE_RESET_SIMULATION);  // 中左 重置仿真
+    if (this->joy_msg.buttons[7])  this->control.SetControlState(STATE_TOGGLE_SIMULATION); // 中右 暂停仿真
+
+    this->control.x = this->joy_msg.axes[1] * 0.75; // Ly
+    this->control.y = this->joy_msg.axes[3] * 0.5; // Lx
+    this->control.yaw = this->joy_msg.axes[0] * 0.25; // Rx
+ }
+// joystick control 黑色小遥控器
+//  {
+//     // Description of buttons and axes(F710):
+//     // |__ buttons[]: Y=0, B=1, A=2, X=3, L1=4, R1=5, L2=6, R2=7, select=8, start=9, mode=10
+//     // |__ axes[]: Lx=0, Ly=1, Rx=3, Ry=4, LT=2, RT=5
+//     if (this->joy_msg.buttons[7]) //R2
+//     {
+//         if (this->joy_msg.buttons[0]) // R2+Y
+//         {
+//             this->control.SetControlState(STATE_POS_GETUP);
+//         }
+//         else if (this->joy_msg.buttons[2]) // R2+A
+//         {
+//             this->control.SetControlState(STATE_POS_GETDOWN);
+//         }
+//         else if (this->joy_msg.buttons[1]) // R2+B
+//         {
+//             this->control.SetControlState(STATE_RL_LOCOMOTION);
+//         }
+//         else if (this->joy_msg.buttons[3]) // R2+X
+//         {
+//             this->control.SetControlState(STATE_RESET_SIMULATION);
+//         }
+//         else if (this->joy_msg.axes[7] < 0) // DOWN
+//         {
+//             this->control.SetControlState(STATE_RL_NAVIGATION);
+//         }
+//     }
+//     if (this->joy_msg.buttons[6]) // L2
+//     {
+//         this->control.SetControlState(STATE_TOGGLE_SIMULATION);
+//     }
+//     if(this->joy_msg.buttons[5]) //L1
+//     {
+//         if (this->joy_msg.buttons[1]) //L1+B
+//         {
+//             this->control.SetControlState(STATE_WHEEL);
+//         }
+//     }
+//  }
 }
 
 void RL_Sim::JointStatesCallback(const robot_msgs::MotorState::ConstPtr &msg, const std::string &joint_name)
@@ -325,15 +342,17 @@ void RL_Sim::RunModel()
         this->episode_length_buf += 1;
         this->obs.lin_vel = torch::tensor({{this->vel.linear.x, this->vel.linear.y, this->vel.linear.z}});
         this->obs.ang_vel = torch::tensor(this->robot_state.imu.gyroscope).unsqueeze(0);
-        // if (this->fsm._currentState->getStateName() == "RLFSMStateRL_Navigation")
-        // {
-        //     this->obs.commands = torch::tensor({{this->cmd_vel.linear.x, this->cmd_vel.linear.y, this->cmd_vel.angular.z}});
-        // }
-        // else
-        // {
-        //     this->obs.commands = torch::tensor({{this->control.x, this->control.y, this->control.yaw}});
-        // }
-        this->obs.commands = torch::tensor({{this->control.x, this->control.y, this->control.yaw}});
+        if (this->fsm._currentState->getStateName() == "RLFSMState_RLNavigation")
+        {
+            this->obs.commands = torch::tensor({{this->cmd_vel.linear.x, this->cmd_vel.linear.y, this->cmd_vel.angular.z}});
+            this->control.x = this->cmd_vel.linear.x;
+            this->control.y = this->cmd_vel.linear.y;
+            this->control.yaw = this->cmd_vel.angular.z;
+        }
+        else
+        {
+            this->obs.commands = torch::tensor({{this->control.x, this->control.y, this->control.yaw}});
+        }
         this->obs.base_quat = torch::tensor(this->robot_state.imu.quaternion).unsqueeze(0);
         this->obs.dof_pos = torch::tensor(this->robot_state.motor_state.q).narrow(0, 0, this->params.num_of_dofs).unsqueeze(0);
         this->obs.dof_vel = torch::tensor(this->robot_state.motor_state.dq).narrow(0, 0, this->params.num_of_dofs).unsqueeze(0);
@@ -369,7 +388,7 @@ void RL_Sim::RunModel()
     }
 }
 
-//zry和zly区别再与是否有历史数据使用，两份代码都没有用
+
 torch::Tensor RL_Sim::Forward()
 {
     torch::autograd::GradMode::set_enabled(false);
@@ -377,7 +396,7 @@ torch::Tensor RL_Sim::Forward()
     torch::Tensor clamped_obs = this->ComputeObservation();
 
     torch::Tensor actions;
-    if (this->params.observations_history.size() != 0) //判断是否启用历史数据
+    if (this->params.observations_history.size() != 0) //判断是否启用历史数据，未启用
     {
         this->history_obs_buf.insert(clamped_obs);
         this->history_obs = this->history_obs_buf.get_obs_vec(this->params.observations_history);

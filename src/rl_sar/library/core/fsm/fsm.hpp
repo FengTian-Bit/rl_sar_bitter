@@ -8,7 +8,6 @@
 #include "RobotState.hpp"
 #include "RobotCommand.hpp"
 
-
 // 状态基类，最上层的，定义状态的基本行为，完全不负责具体实现，派生类中间层在rl_sdk
 class FSMState
 {

@@ -8,64 +8,88 @@ RLFSMState_GetUp::~RLFSMState_GetUp(){}
 void RLFSMState_GetUp::enter()
 {
     std::cout << LOGGER::INFO << "Enter FSM GetUp mode. " << std::endl;
-    rl.running_percent = 0.0f;
     rl.now_state = *fsm_state;
-    rl.start_state = rl.now_state;
+    this->step_standup_counter = 0;
+    this->getup_percent = 0.0;
+    this->home_percent = 0.0;
 }
 
 void RLFSMState_GetUp::run()
 {
-    if (rl.running_percent < 1.0f)
+    if (this->home_percent < 1.0)
     {
-        static int step_standup_counter = 0;
-        rl.running_percent += 1.0f / 1000.0f;
-        rl.running_percent = std::min(rl.running_percent, 1.0f);
         for (int i = 0; i < rl.params.num_of_dofs; ++i)
         {
-            fsm_command->motor_command.q[i] = (1 - rl.running_percent) * rl.start_state.motor_state.q[i] + rl.running_percent * rl.params.default_dof_pos[0][i].item<double>();
-            // fsm_command->motor_command.q[i]=calcCos(q[i], q_d[i], t_max, t);;
+            fsm_command->motor_command.q[i] = calcCos(rl.now_state.motor_state.q[i], rl.params.home_dof_pos[0][i].item<double>(), this->home_percent);
             fsm_command->motor_command.dq[i] = 0;
             fsm_command->motor_command.kp[i] = rl.params.fixed_kp[0][i].item<double>();
             fsm_command->motor_command.kd[i] = rl.params.fixed_kd[0][i].item<double>();
             fsm_command->motor_command.tau[i] = 0;
         }
-
-        if (step_standup_counter == 0)
-        {
-            std::cout << '\n' << LOGGER::INFO << "CSV_STANDUP WRITING: " << rl.csv_filename_standup << '\n';
-        }
-        if(step_standup_counter++ % 5 == 0)
-        {
-            torch::Tensor csv_pos_error = torch::tensor(fsm_command->motor_command.q,  torch::kDouble) -
-                                    torch::tensor(fsm_state->motor_state.q,   torch::kDouble);
-            torch::Tensor csv_vel_error = torch::tensor(fsm_command->motor_command.dq, torch::kDouble) -
-                                    torch::tensor(fsm_state->motor_state.dq,  torch::kDouble);
-            torch::Tensor csv_kp = torch::tensor(fsm_command->motor_command.kp, torch::kDouble);
-            torch::Tensor csv_kd = torch::tensor(fsm_command->motor_command.kd, torch::kDouble);
-
-            torch::Tensor csv_joint_torque_cal = csv_kp * csv_pos_error + csv_kd * csv_vel_error;
-            torch::Tensor csv_joint_tau_est = torch::tensor(fsm_state->motor_state.tau_est, torch::kDouble);
-            torch::Tensor csv_joint_pos = torch::tensor(fsm_state->motor_state.q, torch::kDouble);
-            torch::Tensor csv_joint_pos_target = torch::tensor(fsm_command->motor_command.q, torch::kDouble);
-            torch::Tensor csv_joint_vel = torch::tensor(fsm_state->motor_state.dq, torch::kDouble);
-            torch::Tensor csv_joint_vel_target = torch::tensor(fsm_command->motor_command.dq, torch::kDouble);
-            rl.CSVLoggerJOINT(rl.csv_filename_standup, csv_joint_torque_cal, csv_joint_tau_est, csv_joint_pos, csv_joint_pos_target, csv_joint_vel, csv_joint_vel_target);
-        }
-
-        std::cout << "\r" << std::flush << LOGGER::INFO << "Getting up " << std::fixed << std::setprecision(2) << rl.running_percent * 100.0f << "%" << std::flush;
-        
+        std::cout << "\r" << std::flush << LOGGER::INFO << "Homing: " << std::fixed << std::setprecision(2) << this->home_percent * 100.0 + 0.2 <<"% " << std::flush;
+        this->home_percent += GETUP_D_PERCENT;
+        this->home_percent = this->home_percent > 1.0 ? 1.0 : this->home_percent;
     }
+    else if (this->getup_percent < 1.0)
+    {
+        if (this->getup_percent == 0)
+        {   
+            std::cout<<std::endl<< LOGGER::INFO << "Homing Completed " <<std::endl;
+            for (int i = 0; i < rl.params.num_of_dofs; ++i)
+            {
+                rl.now_state.motor_state.q[i] = fsm_state->motor_state.q[i];
+            }
+            rl.start_state = rl.now_state; // homing positin for down 
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+        for (int i = 0; i < rl.params.num_of_dofs; ++i)
+        {
+            fsm_command->motor_command.q[i] = calcCos(rl.now_state.motor_state.q[i], rl.params.default_dof_pos[0][i].item<double>(), this->getup_percent);
+            fsm_command->motor_command.dq[i] = 0;
+            fsm_command->motor_command.kp[i] = rl.params.fixed_kp[0][i].item<double>();
+            fsm_command->motor_command.kd[i] = rl.params.fixed_kd[0][i].item<double>();
+            fsm_command->motor_command.tau[i] = 0;
+        }
+        std::cout << "\r" << std::flush << LOGGER::INFO << "Getting up: " << std::fixed << std::setprecision(2) << this->getup_percent * 100.0 + 0.2 <<"% "  << std::flush;
+        this->getup_percent += GETUP_D_PERCENT; 
+        this->getup_percent = this->getup_percent > 1.0 ? 1.0 : this->getup_percent;
+    }
+
+    // CSV Logger
+    if (step_standup_counter == 0)
+    {
+        std::cout << '\n' << LOGGER::INFO << "CSV_STANDUP WRITING: " << rl.csv_filename_standup << '\n';
+    }
+    if(step_standup_counter++ % 5 == 0)
+    {
+        torch::Tensor csv_pos_error = torch::tensor(fsm_command->motor_command.q,  torch::kDouble) -
+                                torch::tensor(fsm_state->motor_state.q,   torch::kDouble);
+        torch::Tensor csv_vel_error = torch::tensor(fsm_command->motor_command.dq, torch::kDouble) -
+                                torch::tensor(fsm_state->motor_state.dq,  torch::kDouble);
+        torch::Tensor csv_kp = torch::tensor(fsm_command->motor_command.kp, torch::kDouble);
+        torch::Tensor csv_kd = torch::tensor(fsm_command->motor_command.kd, torch::kDouble);
+        torch::Tensor csv_joint_torque_cal = csv_kp * csv_pos_error + csv_kd * csv_vel_error;
+        torch::Tensor csv_joint_tau_est = torch::tensor(fsm_state->motor_state.tau_est, torch::kDouble);
+        torch::Tensor csv_joint_pos = torch::tensor(fsm_state->motor_state.q, torch::kDouble);
+        torch::Tensor csv_joint_pos_target = torch::tensor(fsm_command->motor_command.q, torch::kDouble);
+        torch::Tensor csv_joint_vel = torch::tensor(fsm_state->motor_state.dq, torch::kDouble);
+        torch::Tensor csv_joint_vel_target = torch::tensor(fsm_command->motor_command.dq, torch::kDouble);
+        rl.CSVLoggerJOINT(rl.csv_filename_standup, csv_joint_torque_cal, csv_joint_tau_est, csv_joint_pos, csv_joint_pos_target, csv_joint_vel, csv_joint_vel_target);
+    }
+    step_standup_counter++;
+        
 }
 
 void RLFSMState_GetUp::exit()
 {
     std::cout << LOGGER::INFO << "Exit FSM GetUp mode. " << std::endl;
-    rl.running_percent = 0.0f;
+    this->getup_percent = 0.0;
+    this->home_percent = 0.0;
 }
 
 std::string RLFSMState_GetUp::checkChange()
 {
-    if (rl.running_percent >= 1.0f)
+    if (this->getup_percent >= 1.0f)
     {
         if (rl.control.control_state == STATE::STATE_RL_LOCOMOTION)
         {
@@ -101,8 +125,8 @@ std::string RLFSMState_GetUp::checkChange()
     return _stateName;
 }
 
-double RLFSMState_GetUp::calcCos(double start, double stop, double T, double t) const
+double RLFSMState_GetUp::calcCos(double start, double stop, double t) const
 {
   double A = (stop - start) / 2.0;
-  return A * -cos(M_PI / T * t) + start + A;
+  return A * -cos(M_PI * t) + start + A;
 }

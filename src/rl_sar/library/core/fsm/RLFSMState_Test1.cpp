@@ -1,6 +1,6 @@
 #include "RLFSMState_Test1.hpp"
 
-//test1是单电机调试，sint函数，将count，des和实际输出打印出来，用matlab绘制曲线
+//test1是单电机调试，sint函数，将count，des和实际输出打印出来，用matlab绘制曲线,但是还没有写完
 
 RLFSMState_Test1::RLFSMState_Test1(RL& rl, const RobotState<double>* state, RobotCommand<double>* command)
         : RLFSMState(rl, state, command, "RLFSMState_Test1") {}

@@ -37,6 +37,13 @@ w1:
   #                   0.0, -0.74, 0.8, 0.0,
   #                   0.0, -0.74, 0.8, 0.0]
 
+  attitude_limits: [180.0, 180.0, 10.0] # pitch roll yaw deg
+
+  home_dof_pos: [ 0.5, 1.3, 0, 0,
+                 -0.5, 1.3, 0, 0,
+                  0.5, 1.3, 0, 0,
+                 -0.5, 1.3, 0, 0] 
+
   # 发布命令和接受电机状态的关节顺序
   joint_controller_names: ["FL_hip_controller", "FL_thigh_controller", "FL_calf_controller", "FL_foot_controller",
                            "FR_hip_controller", "FR_thigh_controller", "FR_calf_controller", "FR_foot_controller",

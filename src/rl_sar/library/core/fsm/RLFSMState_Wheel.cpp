@@ -8,10 +8,9 @@ RLFSMState_Wheel::~RLFSMState_Wheel(){}
 void RLFSMState_Wheel::enter()
 {
     std::cout << LOGGER::INFO << "Enter FSM Wheel mode. " << std::endl;
+    
     // read params from yaml
-    // rl.config_name = rl.default_rl_config;
-    rl.config_name = "robot_lab";
-    rl.robot_name = "bitter";
+    rl.config_name = rl.default_rl_config;
     std::string robot_path = rl.robot_name + "/" + rl.config_name;
     std::cout << LOGGER::INFO << "FSM Wheel robot_path: " << robot_path << std::endl; 
     rl.ReadYaml(robot_path);
@@ -24,27 +23,22 @@ void RLFSMState_Wheel::enter()
 
 void RLFSMState_Wheel::run()
 {
-    //最大速度
     float max_linear_speed = 3.0;
     float max_angular_speed = 4.5;
     float vFL = 0.0;
     float vFR = 0.0;
     float vRL = 0.0;
     float vRR = 0.0;
-    // 获取控制指令
+
     float linear_speed  = max_linear_speed * rl.control.x;    // 前进/后退速度
     float angular_speed = max_angular_speed * rl.control.yaw; // 转向角速度
-    //打印
-    // std::cout << "\r" << std::flush << LOGGER::INFO << "Controller x:" << rl.control.x << " y:" << rl.control.y << " yaw:" << rl.control.yaw <<"linear_speed: "<<linear_speed <<"angular_speed: "<<angular_speed << std::flush;
-
+    
     if (rl.control.x == 0 && rl.control.yaw != 0) // 中心转向
     {
         vFL = -angular_speed;
-        // vFL=0.0;
-        vFR = angular_speed;
+        vFR =  angular_speed;
         vRL = -angular_speed;
-        // vRL=0.0;
-        vRR = angular_speed;
+        vRR =  angular_speed;
     } else if (rl.control.x != 0 && rl.control.yaw == 0) // 仅前进/后退
     {
         vFL = linear_speed;
@@ -54,7 +48,7 @@ void RLFSMState_Wheel::run()
     } else if (rl.control.x != 0 && rl.control.yaw != 0) // 行进中转向
     {
         // 差速驱动模型计算左右轮速度
-        const float wheel_base = 0.7f;// 两对轮子轴距
+        float wheel_base = 0.7;// 两对轮子轴距
         float left_speed = linear_speed + (angular_speed * wheel_base) / 2.0f;
         float right_speed = linear_speed - (angular_speed * wheel_base) / 2.0f;
         vFL = left_speed;
@@ -62,22 +56,20 @@ void RLFSMState_Wheel::run()
         vRL = left_speed;
         vRR = right_speed;
     }
-    // 设置轮电机速度(索引3,7,11,15)
+
     fsm_command->motor_command.dq[3] = vFL;
     fsm_command->motor_command.dq[11] = vRL;
     fsm_command->motor_command.dq[7] = vFR;
     fsm_command->motor_command.dq[15] = vRR;
-    // 打印
-    std::cout << "\r" << std::flush << LOGGER::INFO << "vFL:" << vFL << " vFR:" << vFR << " vRL:" << vRL << " vRR:" << vRR << std::flush;
 
-    // 设置轮电机控制参数
+    std::cout << "\r" << std::flush << LOGGER::INFO <<"lin_vel: "<<linear_speed <<" ang_vel: "<< angular_speed << "  vFL:" << vFL << " vFR:" << vFR << " vRL:" << vRL << " vRR:" << vRR << std::flush;
+    
     for (int idx : {3,7,11,15})
     {
         fsm_command->motor_command.kp[idx] = rl.params.rl_kp[0][idx].item<double>();
         fsm_command->motor_command.kd[idx] = rl.params.rl_kd[0][idx].item<double>();
         fsm_command->motor_command.tau[idx] = 0;
     }
-    // 其余关节使用位置控制
     for (int i = 0; i < rl.params.num_of_dofs; ++i)
     {
         if (std::find(rl.params.wheel_indices.begin(), rl.params.wheel_indices.end(), i) == rl.params.wheel_indices.end()) //跳过轮电机
@@ -94,7 +86,6 @@ void RLFSMState_Wheel::run()
 void RLFSMState_Wheel::exit()
 {
     std::cout << LOGGER::INFO << "Exit FSM Wheel mode. " << std::endl;
-    // 退出时停止所有轮电机
     fsm_command->motor_command.dq[3] = 0;
     fsm_command->motor_command.dq[7] = 0;
     fsm_command->motor_command.dq[11] = 0;

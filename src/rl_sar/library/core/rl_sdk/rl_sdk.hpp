@@ -49,7 +49,7 @@ struct Control
     double x = 0.0;
     double y = 0.0;
     double yaw = 0.0;
-    double wheel = 0.0;
+
     void SetControlState(STATE new_state)
     {
         if (control_state != new_state)
@@ -90,6 +90,7 @@ struct ModelParams
     torch::Tensor fixed_kd;
     torch::Tensor commands_scale;
     torch::Tensor default_dof_pos;
+    torch::Tensor home_dof_pos;
     std::vector<std::string> joint_controller_names;
     std::vector<std::string> action_controller_names;
     std::vector<int> command_mapping;
@@ -126,7 +127,6 @@ public:
     FSM fsm;
     RobotState<double> start_state;
     RobotState<double> now_state;
-    float running_percent = 0.0f;
     bool rl_init_done = false;
 
     // init
@@ -164,6 +164,7 @@ public:
 
     // control
     Control control;
+    
     void KeyboardInterface(); //用于外部调用键盘接口
     std::unique_ptr<KeyboardController> keyboard_controller_;
 

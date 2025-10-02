@@ -11,13 +11,10 @@ RLFSMState_Test2::~RLFSMState_Test2(){}
 void RLFSMState_Test2::enter()
 {
     std::cout << LOGGER::INFO << "Enter FSM Test2 mode" << std::endl;
+    
     // read params from yaml
-    // rl.config_name = rl.default_rl_config;
-    rl.robot_name = "bitter";
-    rl.config_name = "robot_lab";
-    std::cout << LOGGER::INFO << "FSM Test2: config_name: " << rl.config_name << std::endl; //为什么是空的
+    rl.config_name = rl.default_rl_config;
     std::string robot_path = rl.robot_name + "/" + rl.config_name;
-    // std::string robot_path = "go2w/robot_lab";
     try
     {
         rl.InitRL(robot_path);
@@ -33,8 +30,8 @@ void RLFSMState_Test2::enter()
 
     this->count = 0;
     //pub obs
-    // this->pub_obs = nh.advertise<robot_msgs::Observation>("/clamped_obs", 10);
     this->pub_obs = ros::NodeHandle().advertise<robot_msgs::Observation>("/clamped_obs", 10);
+
 }
 
 void RLFSMState_Test2::run()
@@ -62,7 +59,7 @@ void RLFSMState_Test2::run()
         rl.control.y = 0.0;
         rl.control.yaw = 0.0;
         //退出test2模式，进入getup模式，从而结束录制
-        rl.control.control_state = STATE::STATE_POS_GETUP;
+        rl.control.SetControlState(STATE::STATE_POS_GETUP);
         count = 0;
     }
     //-------------------------------------//
@@ -95,7 +92,7 @@ void RLFSMState_Test2::run()
     std::cout<<"clamped_obs: "<<clamped_obs<<std::endl;
     //----------------------------------------------------//
 
-    //--------------如果还要加什么的话-----------------------//
+    //--------------如果还要加什么-----------------------//
                     
     //----------------------------------------------------//
 
